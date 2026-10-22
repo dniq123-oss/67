@@ -145,28 +145,30 @@ function pitch(m){
     const rows=(f||'2-1-1').split('-').map(Number).filter(n=>n>0),ys=Y[rows.length]||Y[3];let k=0,o='';
     rows.forEach((n,r)=>{for(let j=0;j<n;j++){
       const x=300*(j+1)/(n+1),y=home?ys[r]:400-ys[r],nm=(pl[k++]||'').trim();
-      o+=`<circle cx="${x}" cy="${y}" r="13" fill="${col}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y+4}" fill="#fff" font-size="12" text-anchor="middle">${k}</text><text x="${x}" y="${y+28}" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">${esc(nm.slice(0,10))}</text>`;
+      o+=`<circle cx="${x}" cy="${y}" r="13" fill="${k===1?'#f59e0b':col}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y+4}" fill="#fff" font-size="12" text-anchor="middle">${k}</text><text x="${x}" y="${y+28}" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">${esc(nm.slice(0,10))}</text>`;
     }});return o;
   };
   const ln='stroke="#fff" stroke-opacity=".7" stroke-width="2" fill="none"';
   return`<svg class="pitch" viewBox="0 0 300 400"><rect width="300" height="400" fill="#15803d"/><rect x="8" y="8" width="284" height="384" ${ln}/><line x1="8" y1="200" x2="292" y2="200" ${ln}/><circle cx="150" cy="200" r="34" ${ln}/><rect x="90" y="8" width="120" height="48" ${ln}/><rect x="90" y="344" width="120" height="48" ${ln}/><text x="150" y="26" fill="#fff" font-size="12" text-anchor="middle">${esc(tn(m.away))} · ${esc(m.af||'2-1-1')}</text><text x="150" y="386" fill="#fff" font-size="12" text-anchor="middle">${esc(tn(m.home))} · ${esc(m.hf||'2-1-1')}</text>${team(m.af,ap,false,'#dc2626')}${team(m.hf,hp,true,'#4f46e5')}</svg>`;
 }
+const agg=m=>{if(m.round!=='semi'||m.leg!=='2'||m.l1h==null||m.l1a==null)return'';const t=done(m)?`<br>المجموع: ${m.hs+m.l1h} - ${m.as+m.l1a}`:'';return`<div class="mu" style="text-align:center">الذهاب: ${m.l1h} - ${m.l1a}${t}</div>`};
 const lst=(a,b)=>(a||b)?`<div>${a?'⚽ '+esc(a)+'<br>':''}${b?'🎯 '+esc(b):''}</div>`:'<div></div>';
 const side=m=>(m.hsc||m.has||m.asc||m.aas)?`<div class="two mu">${lst(m.hsc,m.has)}${lst(m.asc,m.aas)}</div>`:'';
 function vMatches(){
   const ms=[...S.matches].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
   if(!ms.length)return'<div class="card mu">ما فيه مباريات بعد.</div>';
-  return'<div class="card">'+ms.map(m=>`<div class="m"><div class="mu">${m.round==='final'?'🏆 نهائي · ':m.round==='semi'?'نصف نهائي'+(m.leg==='1'?' (ذهاب)':m.leg==='2'?' (إياب)':'')+' · ':''}${fmt(m.time)} ${done(m)?'· انتهت':''}</div><div class="sc"><span class="n">${esc(tn(m.home))}</span><span class="s">${done(m)?m.hs+' - '+m.as:'vs'}</span><span class="n" style="text-align:end">${esc(tn(m.away))}</span></div>${side(m)}${m.scorers?`<div class="mu">⚽ ${esc(m.scorers)}</div>`:''}${m.assists?`<div class="mu">🎯 ${esc(m.assists)}</div>`:''}${pitch(m)}${staff()?editRow(m):''}</div>`).join('')+'</div>';
+  return'<div class="card">'+ms.map(m=>`<div class="m"><div class="mu">${m.round==='final'?'🏆 نهائي · ':m.round==='semi'?'نصف نهائي'+(m.leg==='1'?' (ذهاب)':m.leg==='2'?' (إياب)':'')+' · ':''}${fmt(m.time)} ${done(m)?'· انتهت':''}</div><div class="sc"><span class="n">${esc(tn(m.home))}</span><span class="s">${done(m)?m.hs+' - '+m.as:'vs'}</span><span class="n" style="text-align:end">${esc(tn(m.away))}</span></div>${agg(m)}${side(m)}${m.scorers?`<div class="mu">⚽ ${esc(m.scorers)}</div>`:''}${m.assists?`<div class="mu">🎯 ${esc(m.assists)}</div>`:''}${pitch(m)}${staff()?editRow(m):''}</div>`).join('')+'</div>';
 }
 function tmForm(m,p){
   const f=m[p+'f']||'2-1-1',pl=(m[p+'p']||'').split('|');
-  return`<div class="tm"><b>${esc(tn(p==='h'?m.home:m.away))}</b><label>الخطة<select id="${p}f_${m.id}">${FORMS.map(x=>`<option ${x===f?'selected':''}>${x}</option>`).join('')}</select></label><label>اللاعبين (من الدفاع للهجوم)<div class="g2">${[0,1,2,3].map(k=>`<input id="${p}p${k}_${m.id}" value="${esc(pl[k]||'')}" placeholder="لاعب ${k+1}">`).join('')}</div></label><label>الهدافين (فاصلة)<input id="${p}sc_${m.id}" value="${esc(m[p+'sc']||'')}"></label><label>الصانعين (فاصلة)<input id="${p}as_${m.id}" value="${esc(m[p+'as']||'')}"></label></div>`;
+  return`<div class="tm"><b>${esc(tn(p==='h'?m.home:m.away))}</b><label>الخطة<select id="${p}f_${m.id}">${FORMS.map(x=>`<option ${x===f?'selected':''}>${x}</option>`).join('')}</select></label><label>اللاعبين (من الحراسة للهجوم)<div class="g2">${[0,1,2,3].map(k=>`<input id="${p}p${k}_${m.id}" value="${esc(pl[k]||'')}" placeholder="${k===0?'🧤 الحارس':'لاعب '+(k+1)}">`).join('')}</div></label><label>الهدافين (فاصلة)<input id="${p}sc_${m.id}" value="${esc(m[p+'sc']||'')}"></label><label>الصانعين (فاصلة)<input id="${p}as_${m.id}" value="${esc(m[p+'as']||'')}"></label></div>`;
 }
-function editRow(m){return`<details><summary><button class="g" style="pointer-events:none">✏️ تعديل</button></summary><div class="fl"><label>النتيجة<div class="row"><input id="h_${m.id}" type="number" inputmode="numeric" value="${m.hs??''}" placeholder="${esc(tn(m.home))}"><input id="a_${m.id}" type="number" inputmode="numeric" value="${m.as??''}" placeholder="${esc(tn(m.away))}"></div></label><label>الوقت<input id="t_${m.id}" type="datetime-local" value="${esc(m.time||'')}"></label>${tmForm(m,'h')}${tmForm(m,'a')}<div class="row"><button onclick="saveM('${m.id}')">حفظ</button>${mgr()?`<button class="r" onclick="if(confirm('حذف المباراة؟'))del('matches','${m.id}')">حذف</button>`:''}</div></div></details>`}
+function editRow(m){return`<details><summary><button class="g" style="pointer-events:none">✏️ تعديل</button></summary><div class="fl"><label>النتيجة<div class="row"><input id="h_${m.id}" type="number" inputmode="numeric" value="${m.hs??''}" placeholder="${esc(tn(m.home))}"><input id="a_${m.id}" type="number" inputmode="numeric" value="${m.as??''}" placeholder="${esc(tn(m.away))}"></div></label><label>الوقت<input id="t_${m.id}" type="datetime-local" value="${esc(m.time||'')}"></label>${m.round==='semi'&&m.leg==='2'?`<label>نتيجة الذهاب<div class="row"><input id="lh_${m.id}" type="number" inputmode="numeric" value="${m.l1h??''}" placeholder="${esc(tn(m.home))}"><input id="la_${m.id}" type="number" inputmode="numeric" value="${m.l1a??''}" placeholder="${esc(tn(m.away))}"></div></label>`:''}${tmForm(m,'h')}${tmForm(m,'a')}<div class="row"><button onclick="saveM('${m.id}')">حفظ</button>${mgr()?`<button class="r" onclick="if(confirm('حذف المباراة؟'))del('matches','${m.id}')">حذف</button>`:''}</div></div></details>`}
 function saveM(i){
   const v=x=>$('#'+x+'_'+i).value.trim();
   const d={hs:v('h')===''?null:+v('h'),as:v('a')===''?null:+v('a'),time:v('t')};
   ['h','a'].forEach(p=>{d[p+'f']=v(p+'f');d[p+'p']=[0,1,2,3].map(k=>v(p+'p'+k)).join('|');d[p+'sc']=v(p+'sc');d[p+'as']=v(p+'as')});
+  const e=$('#lh_'+i);if(e){d.l1h=e.value.trim()===''?null:+e.value;d.l1a=$('#la_'+i).value.trim()===''?null:+$('#la_'+i).value}
   upd('matches',i,d);toast('تم الحفظ');
 }
 
