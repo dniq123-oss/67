@@ -45,6 +45,7 @@ h3{margin:14px 0 6px}
 .on-u{display:flex;align-items:center;gap:6px;padding:3px 0}.dot{width:9px;height:9px;border-radius:50%;background:#22c55e;flex:none}
 .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:12px;right:12px;background:#111;color:#fff;padding:12px;border-radius:12px;z-index:50;text-align:center}
 @media(min-width:800px){body{padding-right:300px}#dr{display:block;background:none;pointer-events:none}#dp{pointer-events:auto;width:300px;max-width:300px;border-left:1px solid var(--bd)}#mb{display:none}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tm{border:1px solid var(--bd);border-radius:12px;padding:10px;display:grid;gap:8px}.pitch{display:block;width:100%;max-width:340px;margin:10px auto;border-radius:12px}
 </style>
 </head>
 <body>
@@ -57,7 +58,7 @@ const SEC=[['m','المباريات','📅'],['s','الترتيب','🏆'],['p',
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const put=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
-let cu=null,tab='m',tsel='',peers=[],built='',ws,prev='',menu=false,seen=null,av='';
+let cap=null,cu=null,tab='m',tsel='',peers=[],built='',ws,prev='',menu=false,seen=null,av='';
 let notif=get('lg_nt')==='1'&&'Notification' in window&&Notification.permission==='granted';
 const unread={g:0,t:0};
 const S={users:[],teams:[],matches:[],g:[],t:[],mutes:{},cfg:{}};
@@ -75,12 +76,13 @@ function sys(t,b){try{if(notif&&Notification.permission==='granted')new Notifica
 
 function init(){
   ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host);
-  ws.onopen=()=>{const t=get('lg_tk');t?sw({a:'resume',token:t}):render()};
+  ws.onopen=()=>{const t=get('lg_tk');if(t)sw({a:'resume',token:t});else{sw({a:'cap'});render()}};
   ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.a==='cap'){cap=m;const q=$('#cq');if(q){q.textContent=m.q;const c=$('#lc');if(c)c.value=''}else if(!cu)render();return}
     if(m.a==='token'){put('lg_tk',m.token);return}
     if(m.a==='err'){const el=$('#le');el?el.textContent=m.msg:toast(m.msg);return}
     if(m.a==='ok'){toast(m.msg);return}
-    if(m.a==='out'){put('lg_tk',null);cu=null;render();return}
+    if(m.a==='out'){put('lg_tk',null);cu=null;sw({a:'cap'});render();return}
     if(m.a==='state'){
       cu=m.me;S.users=m.users;S.teams=m.teams;S.matches=m.matches;S.g=m.g;S.t=m.t;S.cfg=m.cfg;
       S.mutes={};m.mutes.forEach(i=>S.mutes[i]=1);peers=m.online.map(u=>({presence:u}));
@@ -107,15 +109,15 @@ function enableNotif(){
   if(!('Notification' in window)){toast('متصفحك ما يدعم الإشعارات');return}
   Notification.requestPermission().then(p=>{notif=p==='granted';put('lg_nt',notif?'1':null);toast(notif?'تم تفعيل الإشعارات':'تم رفض الإذن من المتصفح');drawer()});
 }
-function login(){sw({a:'login',name:$('#ln').value.trim(),pin:$('#lp').value})}
-function logout(){sw({a:'logout',token:get('lg_tk')});put('lg_tk',null);cu=null;prev='';seen=null;menu=false;render()}
+function login(){if(!cap)return;sw({a:'login',name:$('#ln').value.trim(),pin:$('#lp').value,cid:cap.id,cv:$('#lc').value})}
+function logout(){sw({a:'logout',token:get('lg_tk')});put('lg_tk',null);cu=null;prev='';seen=null;menu=false;render();sw({a:'cap'})}
 const vis=()=>{const l=SEC.filter(s=>staff()||!(S.cfg[s[0]]||{}).hidden);if(staff())l.push(['a','الإدارة','⚙️']);l.push(['c','حسابي','👤']);return l};
 function go(t){tab=t;menu=false;if(unread[t]!==undefined)unread[t]=0;document.title='دوري الحارة';render()}
 
 function render(){
   built='';
   if(!cu){
-    $('#app').innerHTML=`<header><b>⚽ دوري الحارة</b></header><div class="card login"><h3>تسجيل الدخول</h3><input id="ln" placeholder="اسم المستخدم" autocomplete="username"><input id="lp" type="password" placeholder="الرمز السري" onkeydown="if(event.key==='Enter')login()"><button onclick="login()">دخول</button><div id="le" class="mu"></div></div>`;
+    $('#app').innerHTML=`<header><b>⚽ دوري الحارة</b></header><div class="card login"><h3>تسجيل الدخول</h3><input id="ln" placeholder="اسم المستخدم" autocomplete="username"><input id="lp" type="password" placeholder="الرمز السري" onkeydown="if(event.key==='Enter')login()"><div class="row" style="flex-wrap:nowrap"><span>🤖 تحقق أنك إنسان: <b id="cq">${cap?cap.q:'...'}</b> = ؟</span><input id="lc" inputmode="numeric" placeholder="الناتج" onkeydown="if(event.key==='Enter')login()"><button class="g" onclick="sw({a:'cap'})">🔄</button></div><button onclick="login()">دخول</button><div id="le" class="mu"></div></div>`;
     return;
   }
   const V=vis();if(!V.find(t=>t[0]===tab))tab=V[0][0];
@@ -134,13 +136,39 @@ function drawer(){
   ['owner','deputy','admin','captain','player'].map(r=>{const x=l.filter(u=>u.role===r);return x.length?`<div class="mu" style="margin-top:8px">${RN[r]} — ${x.length}</div>`+x.map(u=>`<div class="on-u"><span class="dot"></span><span class="rl ${r}">${esc(u.name)}</span></div>`).join(''):''}).join('');
 }
 
+const FORMS=['2-1-1','1-2-1','1-1-2','2-2','3-1','1-3'];
+function pitch(m){
+  const hp=(m.hp||'').split('|'),ap=(m.ap||'').split('|');
+  if(!(m.hp||'').replace(/\|/g,'').trim()&&!(m.ap||'').replace(/\|/g,'').trim())return'';
+  const Y={1:[300],2:[320,240],3:[330,285,240]};
+  const team=(f,pl,home,col)=>{
+    const rows=(f||'2-1-1').split('-').map(Number).filter(n=>n>0),ys=Y[rows.length]||Y[3];let k=0,o='';
+    rows.forEach((n,r)=>{for(let j=0;j<n;j++){
+      const x=300*(j+1)/(n+1),y=home?ys[r]:400-ys[r],nm=(pl[k++]||'').trim();
+      o+=`<circle cx="${x}" cy="${y}" r="13" fill="${col}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y+4}" fill="#fff" font-size="12" text-anchor="middle">${k}</text><text x="${x}" y="${y+28}" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">${esc(nm.slice(0,10))}</text>`;
+    }});return o;
+  };
+  const ln='stroke="#fff" stroke-opacity=".7" stroke-width="2" fill="none"';
+  return`<svg class="pitch" viewBox="0 0 300 400"><rect width="300" height="400" fill="#15803d"/><rect x="8" y="8" width="284" height="384" ${ln}/><line x1="8" y1="200" x2="292" y2="200" ${ln}/><circle cx="150" cy="200" r="34" ${ln}/><rect x="90" y="8" width="120" height="48" ${ln}/><rect x="90" y="344" width="120" height="48" ${ln}/><text x="150" y="26" fill="#fff" font-size="12" text-anchor="middle">${esc(tn(m.away))} · ${esc(m.af||'2-1-1')}</text><text x="150" y="386" fill="#fff" font-size="12" text-anchor="middle">${esc(tn(m.home))} · ${esc(m.hf||'2-1-1')}</text>${team(m.af,ap,false,'#dc2626')}${team(m.hf,hp,true,'#4f46e5')}</svg>`;
+}
+const lst=(a,b)=>(a||b)?`<div>${a?'⚽ '+esc(a)+'<br>':''}${b?'🎯 '+esc(b):''}</div>`:'<div></div>';
+const side=m=>(m.hsc||m.has||m.asc||m.aas)?`<div class="two mu">${lst(m.hsc,m.has)}${lst(m.asc,m.aas)}</div>`:'';
 function vMatches(){
   const ms=[...S.matches].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
   if(!ms.length)return'<div class="card mu">ما فيه مباريات بعد.</div>';
-  return'<div class="card">'+ms.map(m=>`<div class="m"><div class="mu">${m.round==='final'?'🏆 نهائي · ':m.round==='semi'?'نصف نهائي'+(m.leg==='1'?' (ذهاب)':m.leg==='2'?' (إياب)':'')+' · ':''}${fmt(m.time)} ${done(m)?'· انتهت':''}</div><div class="sc"><span class="n">${esc(tn(m.home))}</span><span class="s">${done(m)?m.hs+' - '+m.as:'vs'}</span><span class="n" style="text-align:end">${esc(tn(m.away))}</span></div>${m.scorers?`<div class="mu">⚽ ${esc(m.scorers)}</div>`:''}${m.assists?`<div class="mu">🎯 ${esc(m.assists)}</div>`:''}${staff()?editRow(m):''}</div>`).join('')+'</div>';
+  return'<div class="card">'+ms.map(m=>`<div class="m"><div class="mu">${m.round==='final'?'🏆 نهائي · ':m.round==='semi'?'نصف نهائي'+(m.leg==='1'?' (ذهاب)':m.leg==='2'?' (إياب)':'')+' · ':''}${fmt(m.time)} ${done(m)?'· انتهت':''}</div><div class="sc"><span class="n">${esc(tn(m.home))}</span><span class="s">${done(m)?m.hs+' - '+m.as:'vs'}</span><span class="n" style="text-align:end">${esc(tn(m.away))}</span></div>${side(m)}${m.scorers?`<div class="mu">⚽ ${esc(m.scorers)}</div>`:''}${m.assists?`<div class="mu">🎯 ${esc(m.assists)}</div>`:''}${pitch(m)}${staff()?editRow(m):''}</div>`).join('')+'</div>';
 }
-function editRow(m){return`<details><summary><button class="g" style="pointer-events:none">✏️ تعديل</button></summary><div class="fl"><label>النتيجة<div class="row"><input id="h${m.id}" type="number" inputmode="numeric" value="${m.hs??''}" placeholder="الأول"><input id="a${m.id}" type="number" inputmode="numeric" value="${m.as??''}" placeholder="الثاني"></div></label><label>الوقت<input id="t${m.id}" type="datetime-local" value="${esc(m.time||'')}"></label><label>المسجلين (فاصلة)<input id="sc${m.id}" value="${esc(m.scorers||'')}"></label><label>الصانعين (فاصلة)<input id="as${m.id}" value="${esc(m.assists||'')}"></label><div class="row"><button onclick="saveM('${m.id}')">حفظ</button>${mgr()?`<button class="r" onclick="if(confirm('حذف المباراة؟'))del('matches','${m.id}')">حذف</button>`:''}</div></div></details>`}
-function saveM(i){const n=x=>$('#'+x+i).value;upd('matches',i,{hs:n('h')===''?null:+n('h'),as:n('a')===''?null:+n('a'),time:n('t'),scorers:n('sc'),assists:n('as')});toast('تم الحفظ')}
+function tmForm(m,p){
+  const f=m[p+'f']||'2-1-1',pl=(m[p+'p']||'').split('|');
+  return`<div class="tm"><b>${esc(tn(p==='h'?m.home:m.away))}</b><label>الخطة<select id="${p}f_${m.id}">${FORMS.map(x=>`<option ${x===f?'selected':''}>${x}</option>`).join('')}</select></label><label>اللاعبين (من الدفاع للهجوم)<div class="g2">${[0,1,2,3].map(k=>`<input id="${p}p${k}_${m.id}" value="${esc(pl[k]||'')}" placeholder="لاعب ${k+1}">`).join('')}</div></label><label>الهدافين (فاصلة)<input id="${p}sc_${m.id}" value="${esc(m[p+'sc']||'')}"></label><label>الصانعين (فاصلة)<input id="${p}as_${m.id}" value="${esc(m[p+'as']||'')}"></label></div>`;
+}
+function editRow(m){return`<details><summary><button class="g" style="pointer-events:none">✏️ تعديل</button></summary><div class="fl"><label>النتيجة<div class="row"><input id="h_${m.id}" type="number" inputmode="numeric" value="${m.hs??''}" placeholder="${esc(tn(m.home))}"><input id="a_${m.id}" type="number" inputmode="numeric" value="${m.as??''}" placeholder="${esc(tn(m.away))}"></div></label><label>الوقت<input id="t_${m.id}" type="datetime-local" value="${esc(m.time||'')}"></label>${tmForm(m,'h')}${tmForm(m,'a')}<div class="row"><button onclick="saveM('${m.id}')">حفظ</button>${mgr()?`<button class="r" onclick="if(confirm('حذف المباراة؟'))del('matches','${m.id}')">حذف</button>`:''}</div></div></details>`}
+function saveM(i){
+  const v=x=>$('#'+x+'_'+i).value.trim();
+  const d={hs:v('h')===''?null:+v('h'),as:v('a')===''?null:+v('a'),time:v('t')};
+  ['h','a'].forEach(p=>{d[p+'f']=v(p+'f');d[p+'p']=[0,1,2,3].map(k=>v(p+'p'+k)).join('|');d[p+'sc']=v(p+'sc');d[p+'as']=v(p+'as')});
+  upd('matches',i,d);toast('تم الحفظ');
+}
 
 function vTable(){
   const r={};S.teams.forEach(t=>r[t.id]={n:t.name,p:0,w:0,d:0,l:0,gf:0,ga:0});
@@ -150,9 +178,9 @@ function vTable(){
   return`<div class="card" style="overflow-x:auto"><table><tr><th>#</th><th>الفريق</th><th>لعب</th><th>ف</th><th>ت</th><th>خ</th><th>+/-</th><th>نقاط</th></tr>${L.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.n)}</td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gd}</td><td><b>${x.pt}</b></td></tr>`).join('')}</table></div>`;
 }
 function vScorers(){
-  const cnt=k=>{const c={};S.matches.forEach(m=>(m[k]||'').split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(n=>c[n]=(c[n]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1])};
+  const cnt=ks=>{const c={};S.matches.forEach(m=>ks.forEach(k=>(m[k]||'').split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(n=>c[n]=(c[n]||0)+1)));return Object.entries(c).sort((a,b)=>b[1]-a[1])};
   const tb=(t,l)=>`<div class="card"><h3 style="margin-top:0">${t}</h3>${l.length?`<table>${l.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x[0])}</td><td><b>${x[1]}</b></td></tr>`).join('')}</table>`:'<span class="mu">لا يوجد</span>'}</div>`;
-  return tb('⚽ الهدافين',cnt('scorers'))+tb('🎯 صناع اللعب',cnt('assists'));
+  return tb('⚽ الهدافين',cnt(['hsc','asc','scorers']))+tb('🎯 صناع اللعب',cnt(['has','aas','assists']));
 }
 
 function vChat(k){
