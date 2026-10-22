@@ -5,91 +5,133 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>دوري الحارة</title>
 <style>
-:root{--bg:#f3f5f9;--card:#fff;--tx:#14181f;--mu:#6b7380;--bd:#e1e5ec;--ac:#16a34a;--ow:#d4a017;--ad:#dc2626;--pl:#16a34a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#1a1f29;--tx:#eef1f6;--mu:#8d96a5;--bd:#2a3140;color-scheme:dark}}
-*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;font-size:15px}
-header{background:var(--ac);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-header b{font-size:18px}
-button,input,select{font:inherit;color:var(--tx)}
-input,select{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px;max-width:100%}
-button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
-button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}button.r{background:var(--ad)}
-.wrap{display:grid;gap:12px;padding:12px;max-width:1100px;margin:auto}
-@media(min-width:800px){.wrap{grid-template-columns:230px 1fr}}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
-.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}.tabs button{background:var(--card);color:var(--tx);border:1px solid var(--bd);white-space:nowrap}.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.m{border-bottom:1px solid var(--bd);padding:10px 0}.m:last-child{border:0}
-.sc{display:flex;justify-content:space-between;align-items:center;font-weight:700;gap:8px}.sc .n{flex:1}.sc .s{background:var(--bg);padding:4px 12px;border-radius:8px;min-width:64px;text-align:center}
+:root{--bg:#f4f6fb;--card:#fff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;--ac:#4f46e5;--ac2:#7c3aed;--sh:0 2px 10px #0f172a14;box-sizing:border-box;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1020;--card:#151b2e;--tx:#e8ecf8;--mu:#94a3b8;--bd:#252d45;--sh:0 2px 14px #0006;color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;font-size:16px;padding-bottom:env(safe-area-inset-bottom,0px)}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:var(--sh)}
+header b{font-size:19px}
+button,input,select{font:inherit;color:var(--tx);min-height:46px}
+input,select{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:8px 12px;max-width:100%;font-size:16px}
+input:focus,select:focus{outline:2px solid var(--ac);border-color:transparent}
+button{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:0;border-radius:12px;padding:8px 16px;cursor:pointer;font-weight:600}
+button:active{opacity:.8}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}button.r{background:#dc2626}
+#mb{background:transparent;font-size:26px;padding:0 10px}
+#main{padding:12px;max-width:760px;margin:auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--sh)}
+.m{border-bottom:1px solid var(--bd);padding:12px 0}.m:last-child{border:0}
+.sc{display:flex;justify-content:space-between;align-items:center;font-weight:700;gap:8px}.sc .n{flex:1}.sc .s{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;padding:6px 12px;border-radius:10px;min-width:64px;text-align:center}
 .mu{color:var(--mu);font-size:13px}
-table{width:100%;border-collapse:collapse}th,td{padding:7px 4px;text-align:center;border-bottom:1px solid var(--bd)}td:nth-child(2),th:nth-child(2){text-align:start}
-.on-u{display:flex;align-items:center;gap:6px;padding:4px 0}.dot{width:9px;height:9px;border-radius:50%;background:#22c55e;flex:none}
-.rl{font-size:12px;font-weight:700}.owner{color:var(--ow)}.admin{color:var(--ad)}.player{color:var(--pl)}
-#cl{height:50vh;min-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-.msg{background:var(--bg);border-radius:10px;padding:6px 10px;word-break:break-word}
-.in{display:flex;gap:6px}.in input{flex:1}
-.row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;align-items:center}
-.login{max-width:340px;margin:40px auto;display:grid;gap:10px}
-h3{margin:12px 0 6px}
+table{width:100%;border-collapse:collapse}th,td{padding:10px 4px;text-align:center;border-bottom:1px solid var(--bd)}th{color:var(--mu);font-size:13px}td:nth-child(2),th:nth-child(2){text-align:start}
+.rl{font-weight:700}.owner{color:#d4a017}.deputy{color:#ea580c}.admin{color:#dc2626}.captain{color:#2563eb}.player{color:#16a34a}
+.bd{font-size:11px;border:1px solid currentColor;border-radius:6px;padding:0 5px}
+.av{border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;text-align:center;object-fit:cover;flex:none;display:inline-block;vertical-align:middle}
+#cl{height:46vh;min-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+#pn{max-height:130px;overflow-y:auto}
+.msg{display:flex;gap:8px;background:var(--bg);border-radius:14px;padding:9px;word-break:break-word}.msg.pin{border:1px solid #f59e0b}
+.msg a{cursor:pointer;font-size:13px}.mb{flex:1}
+.mn{color:#2563eb;font-weight:700}.mn.me{background:#fde68a;color:#000;border-radius:4px;padding:0 3px}
+.in{display:flex;gap:6px}.in input{flex:1}.in select{width:62px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}.row input,.row select{flex:1;min-width:110px}
+.fl{display:grid;gap:10px;margin-top:8px}label{display:grid;gap:4px;font-size:14px;color:var(--mu)}
+summary{list-style:none;text-align:center;cursor:pointer;margin-top:6px}summary::-webkit-details-marker{display:none}
+.login{max-width:340px;margin:40px auto;display:grid;gap:12px}
+h3{margin:14px 0 6px}
+#dr{position:fixed;inset:0;background:#0007;display:none;z-index:20}#dr.o{display:block}
+#dp{position:absolute;top:0;bottom:0;right:0;width:80%;max-width:320px;background:var(--card);overflow-y:auto;padding:14px;padding-top:calc(14px + env(safe-area-inset-top,0px))}
+.nv{display:flex;justify-content:space-between;align-items:center;width:100%;background:transparent;color:var(--tx);text-align:start;border-radius:12px;margin:2px 0;font-weight:500}.nv.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
+.nb{background:#dc2626;color:#fff;border-radius:10px;padding:0 8px;font-size:12px}
+.on-u{display:flex;align-items:center;gap:6px;padding:3px 0}.dot{width:9px;height:9px;border-radius:50%;background:#22c55e;flex:none}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:12px;right:12px;background:#111;color:#fff;padding:12px;border-radius:12px;z-index:50;text-align:center}
+@media(min-width:800px){body{padding-right:300px}#dr{display:block;background:none;pointer-events:none}#dp{pointer-events:auto;width:300px;max-width:300px;border-left:1px solid var(--bd)}#mb{display:none}}
 </style>
 </head>
 <body>
-<header><b>⚽ دوري الحارة</b><span id="who"></span></header>
 <div id="app"></div>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const RN={owner:'مالك السيرفر',admin:'أدمن',player:'لاعب'};
+const RN={owner:'مالك السيرفر',deputy:'مساعد المالك',admin:'أدمن',captain:'كبتن',player:'لاعب'};
+const SEC=[['m','المباريات','📅'],['s','الترتيب','🏆'],['p','الهدافين','⚽'],['g','الشات العام','💬'],['t','شات الفريق','🛡️']];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const put=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
-let cu=null,tab='m',tsel='',peers=[],built='',ws,prev='';
-const S={users:[],teams:[],matches:[],g:[],t:[],mutes:{}};
+let cu=null,tab='m',tsel='',peers=[],built='',ws,prev='',menu=false,seen=null,av='';
+let notif=get('lg_nt')==='1'&&'Notification' in window&&Notification.permission==='granted';
+const unread={g:0,t:0};
+const S={users:[],teams:[],matches:[],g:[],t:[],mutes:{},cfg:{}};
+const U=i=>S.users.find(u=>u.id===i);
+const mgr=()=>cu&&(cu.role==='owner'||cu.role==='deputy');
+const staff=()=>cu&&(mgr()||cu.role==='admin');
 const tn=i=>(S.teams.find(t=>t.id===i)||{}).name||'—';
-const staff=()=>cu&&(cu.role==='owner'||cu.role==='admin');
 const fmt=t=>t?new Date(t).toLocaleString('ar-SA',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
 const done=m=>m.hs!=null&&m.hs!==''&&m.as!=null&&m.as!=='';
+const avi=(u,s=32)=>u&&u.av?`<img class="av" style="width:${s}px;height:${s}px" src="/av/${u.id}?v=${u.av}">`:`<span class="av" style="width:${s}px;height:${s}px;line-height:${s}px">${esc((u&&u.name||'?')[0])}</span>`;
 const sw=o=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))};
-const db={collection:c=>({doc:i=>({set:d=>sw({a:'set',c,i,d}),update:d=>sw({a:'upd',c,i,d}),delete:()=>sw({a:'del',c,i})})})};
+const set=(c,i,d)=>sw({a:'set',c,i,d}),upd=(c,i,d)=>sw({a:'upd',c,i,d}),del=(c,i)=>sw({a:'del',c,i});
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),3500)}
+function sys(t,b){try{if(notif&&Notification.permission==='granted')new Notification(t,{body:b})}catch(e){}if(navigator.vibrate)navigator.vibrate(120)}
+
 function init(){
   ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host);
   ws.onopen=()=>{const t=get('lg_tk');t?sw({a:'resume',token:t}):render()};
   ws.onmessage=e=>{const m=JSON.parse(e.data);
     if(m.a==='token'){put('lg_tk',m.token);return}
-    if(m.a==='err'){const el=$('#le');if(el)el.textContent=m.msg;return}
+    if(m.a==='err'){const el=$('#le');el?el.textContent=m.msg:toast(m.msg);return}
+    if(m.a==='ok'){toast(m.msg);return}
     if(m.a==='out'){put('lg_tk',null);cu=null;render();return}
     if(m.a==='state'){
-      cu=m.me;S.users=m.users;S.teams=m.teams;S.matches=m.matches;S.g=m.g;S.t=m.t;
+      cu=m.me;S.users=m.users;S.teams=m.teams;S.matches=m.matches;S.g=m.g;S.t=m.t;S.cfg=m.cfg;
       S.mutes={};m.mutes.forEach(i=>S.mutes[i]=1);peers=m.online.map(u=>({presence:u}));
-      const k=JSON.stringify([cu,S.users,S.teams,S.matches,m.mutes]);
-      if(k!==prev){prev=k;render()}else{onlineUpdate();chatUpdate('g');chatUpdate('t')}
+      notify();
+      const k=JSON.stringify([cu,S.users,S.teams,S.matches,m.mutes,S.cfg]);
+      if(k!==prev){prev=k;render()}else{drawer();chatUpdate('g');chatUpdate('t')}
     }};
   ws.onclose=()=>setTimeout(init,2000);
 }
+function notify(){
+  const all=[...S.g.map(x=>({...x,k:'g'})),...S.t.map(x=>({...x,k:'t'}))];
+  if(!seen){seen=new Set(all.map(x=>x.id));return}
+  all.forEach(x=>{
+    if(seen.has(x.id))return;seen.add(x.id);if(x.u===cu.id)return;
+    const men=x.text.toLowerCase().includes('@'+cu.name.toLowerCase());
+    const viewing=!document.hidden&&tab===x.k&&!menu;
+    if(!viewing)unread[x.k]++;
+    if(men&&!viewing){toast('📣 '+x.name+' ذكرك: '+x.text.slice(0,60));sys('منشن من '+x.name,x.text)}
+    else if(x.k==='t'&&document.hidden)sys(x.name,x.text);
+  });
+  document.title=(unread.g+unread.t?'('+(unread.g+unread.t)+') ':'')+'دوري الحارة';
+}
+function enableNotif(){
+  if(!('Notification' in window)){toast('متصفحك ما يدعم الإشعارات');return}
+  Notification.requestPermission().then(p=>{notif=p==='granted';put('lg_nt',notif?'1':null);toast(notif?'تم تفعيل الإشعارات':'تم رفض الإذن من المتصفح');drawer()});
+}
 function login(){sw({a:'login',name:$('#ln').value.trim(),pin:$('#lp').value})}
-function logout(){sw({a:'logout',token:get('lg_tk')});put('lg_tk',null);cu=null;prev='';render()}
+function logout(){sw({a:'logout',token:get('lg_tk')});put('lg_tk',null);cu=null;prev='';seen=null;menu=false;render()}
+const vis=()=>{const l=SEC.filter(s=>staff()||!(S.cfg[s[0]]||{}).hidden);if(staff())l.push(['a','الإدارة','⚙️']);l.push(['c','حسابي','👤']);return l};
+function go(t){tab=t;menu=false;if(unread[t]!==undefined)unread[t]=0;document.title='دوري الحارة';render()}
+
 function render(){
   built='';
-  $('#who').innerHTML=cu?`<span>${esc(cu.name)} · ${RN[cu.role]} <button class="g" style="color:#fff;border-color:#fff8" onclick="logout()">خروج</button></span>`:'';
   if(!cu){
-    $('#app').innerHTML=`<div class="card login"><h3>تسجيل الدخول</h3><input id="ln" placeholder="اسم المستخدم"><input id="lp" type="password" placeholder="الرمز السري" onkeydown="if(event.key==='Enter')login()"><button onclick="login()">دخول</button><div id="le" class="mu"></div></div>`;
+    $('#app').innerHTML=`<header><b>⚽ دوري الحارة</b></header><div class="card login"><h3>تسجيل الدخول</h3><input id="ln" placeholder="اسم المستخدم" autocomplete="username"><input id="lp" type="password" placeholder="الرمز السري" onkeydown="if(event.key==='Enter')login()"><button onclick="login()">دخول</button><div id="le" class="mu"></div></div>`;
     return;
   }
-  const T=[['m','المباريات'],['s','الترتيب'],['p','الهدافين'],['g','الشات العام'],['t','شات الفريق']];
-  if(staff())T.push(['a','الإدارة']);
-  $('#app').innerHTML=`<div class="wrap"><aside class="card" id="on"></aside><main><div class="tabs">${T.map(t=>`<button class="${tab===t[0]?'on':''}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join('')}</div><div id="main"></div></main></div>`;
-  onlineUpdate();
-  const v={m:vMatches,s:vTable,p:vScorers,g:()=>vChat('g'),t:()=>vChat('t'),a:vAdmin}[tab];
-  $('#main').innerHTML=v();
+  const V=vis();if(!V.find(t=>t[0]===tab))tab=V[0][0];
+  $('#app').innerHTML=`<header><button id="mb" onclick="menu=true;render()">☰</button><b>⚽ دوري الحارة</b><span>${avi(cu,34)}</span></header><div id="dr" class="${menu?'o':''}" onclick="if(event.target===this){menu=false;render()}"><div id="dp"></div></div><div id="main"></div>`;
+  drawer();
+  $('#main').innerHTML={m:vMatches,s:vTable,p:vScorers,g:()=>vChat('g'),t:()=>vChat('t'),a:vAdmin,c:vAcct}[tab]();
   if(tab==='g'||tab==='t'){built=tab+tsel;chatUpdate(tab)}
 }
-function onlineUpdate(){
-  const el=$('#on');if(!el)return;
-  const m=new Map();
-  peers.forEach(p=>{const d=p.presence||{};if(d.uid&&!m.has(d.uid))m.set(d.uid,d)});
-  if(cu)m.set(cu.id,{uid:cu.id,name:cu.name,role:cu.role});
+function drawer(){
+  const el=$('#dp');if(!el)return;
+  const m=new Map();peers.forEach(p=>{const d=p.presence||{};if(d.uid&&!m.has(d.uid))m.set(d.uid,d)});m.set(cu.id,{uid:cu.id,name:cu.name,role:cu.role});
   const l=[...m.values()];
-  el.innerHTML=`<b>المتصلين — ${l.length}</b>`+['owner','admin','player'].map(r=>{const x=l.filter(u=>u.role===r);return x.length?`<div class="mu" style="margin-top:8px">${RN[r]} — ${x.length}</div>`+x.map(u=>`<div class="on-u"><span class="dot"></span><span class="rl ${r}">${esc(u.name)}</span></div>`).join(''):''}).join('');
+  el.innerHTML=`<div class="row" style="flex-wrap:nowrap">${avi(cu,44)}<div><b class="rl ${cu.role}">${esc(cu.name)}</b><div class="mu">${RN[cu.role]}</div></div></div>`+
+  vis().map(t=>`<button class="nv ${tab===t[0]?'on':''}" onclick="go('${t[0]}')"><span>${t[2]} ${t[1]}</span>${unread[t[0]]?`<span class="nb">${unread[t[0]]}</span>`:''}</button>`).join('')+
+  `<button class="nv" onclick="enableNotif()"><span>🔔 ${notif?'الإشعارات مفعلة':'تفعيل الإشعارات'}</span></button><button class="nv" onclick="logout()"><span>🚪 خروج</span></button><hr style="border-color:var(--bd)"><b>المتصلين — ${l.length}</b>`+
+  ['owner','deputy','admin','captain','player'].map(r=>{const x=l.filter(u=>u.role===r);return x.length?`<div class="mu" style="margin-top:8px">${RN[r]} — ${x.length}</div>`+x.map(u=>`<div class="on-u"><span class="dot"></span><span class="rl ${r}">${esc(u.name)}</span></div>`).join(''):''}).join('');
 }
 
 function vMatches(){
@@ -97,8 +139,8 @@ function vMatches(){
   if(!ms.length)return'<div class="card mu">ما فيه مباريات بعد.</div>';
   return'<div class="card">'+ms.map(m=>`<div class="m"><div class="mu">${m.round==='final'?'🏆 نهائي · ':m.round==='semi'?'نصف نهائي'+(m.leg==='1'?' (ذهاب)':m.leg==='2'?' (إياب)':'')+' · ':''}${fmt(m.time)} ${done(m)?'· انتهت':''}</div><div class="sc"><span class="n">${esc(tn(m.home))}</span><span class="s">${done(m)?m.hs+' - '+m.as:'vs'}</span><span class="n" style="text-align:end">${esc(tn(m.away))}</span></div>${m.scorers?`<div class="mu">⚽ ${esc(m.scorers)}</div>`:''}${m.assists?`<div class="mu">🎯 ${esc(m.assists)}</div>`:''}${staff()?editRow(m):''}</div>`).join('')+'</div>';
 }
-function editRow(m){return`<div class="row"><input id="h${m.id}" type="number" style="width:60px" value="${m.hs??''}" placeholder="هدف"><input id="a${m.id}" type="number" style="width:60px" value="${m.as??''}" placeholder="هدف"><input id="t${m.id}" type="datetime-local" value="${esc(m.time||'')}"><input id="sc${m.id}" value="${esc(m.scorers||'')}" placeholder="المسجلين (فاصلة)"><input id="as${m.id}" value="${esc(m.assists||'')}" placeholder="الصانعين (فاصلة)"><button onclick="saveM('${m.id}')">حفظ</button>${cu.role==='owner'?`<button class="r" onclick="db.collection('matches').doc('${m.id}').delete()">حذف</button>`:''}</div>`}
-function saveM(i){const n=x=>$('#'+x+i).value;db.collection('matches').doc(i).update({hs:n('h')===''?null:+n('h'),as:n('a')===''?null:+n('a'),time:n('t'),scorers:n('sc'),assists:n('as')})}
+function editRow(m){return`<details><summary><button class="g" style="pointer-events:none">✏️ تعديل</button></summary><div class="fl"><label>النتيجة<div class="row"><input id="h${m.id}" type="number" inputmode="numeric" value="${m.hs??''}" placeholder="الأول"><input id="a${m.id}" type="number" inputmode="numeric" value="${m.as??''}" placeholder="الثاني"></div></label><label>الوقت<input id="t${m.id}" type="datetime-local" value="${esc(m.time||'')}"></label><label>المسجلين (فاصلة)<input id="sc${m.id}" value="${esc(m.scorers||'')}"></label><label>الصانعين (فاصلة)<input id="as${m.id}" value="${esc(m.assists||'')}"></label><div class="row"><button onclick="saveM('${m.id}')">حفظ</button>${mgr()?`<button class="r" onclick="if(confirm('حذف المباراة؟'))del('matches','${m.id}')">حذف</button>`:''}</div></div></details>`}
+function saveM(i){const n=x=>$('#'+x+i).value;upd('matches',i,{hs:n('h')===''?null:+n('h'),as:n('a')===''?null:+n('a'),time:n('t'),scorers:n('sc'),assists:n('as')});toast('تم الحفظ')}
 
 function vTable(){
   const r={};S.teams.forEach(t=>r[t.id]={n:t.name,p:0,w:0,d:0,l:0,gf:0,ga:0});
@@ -110,48 +152,74 @@ function vTable(){
 function vScorers(){
   const cnt=k=>{const c={};S.matches.forEach(m=>(m[k]||'').split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(n=>c[n]=(c[n]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1])};
   const tb=(t,l)=>`<div class="card"><h3 style="margin-top:0">${t}</h3>${l.length?`<table>${l.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x[0])}</td><td><b>${x[1]}</b></td></tr>`).join('')}</table>`:'<span class="mu">لا يوجد</span>'}</div>`;
-  return'<div style="display:grid;gap:10px">'+tb('⚽ الهدافين',cnt('scorers'))+tb('🎯 صناع اللعب',cnt('assists'))+'</div>';
+  return tb('⚽ الهدافين',cnt('scorers'))+tb('🎯 صناع اللعب',cnt('assists'));
 }
 
-function chatKey(k){return k==='g'?'g':'t'}
 function vChat(k){
   let head='';
   if(k==='t'){
-    if(cu.role==='owner'){if(!tsel)tsel=(S.teams[0]||{}).id||'';head=`<div class="row"><select id="ts" onchange="tsel=this.value;render()">${S.teams.map(t=>`<option value="${t.id}" ${t.id===tsel?'selected':''}>${esc(t.name)}</option>`).join('')}</select></div>`}
+    if(cu.role==='owner'){if(!tsel)tsel=(S.teams[0]||{}).id||'';head=`<div class="row"><select onchange="tsel=this.value;render()">${S.teams.map(t=>`<option value="${t.id}" ${t.id===tsel?'selected':''}>${esc(t.name)}</option>`).join('')}</select></div>`}
     else{tsel=cu.team;if(!tsel)return'<div class="card mu">ما تم تحديد فريق لك بعد.</div>'}
   }
-  const muted=k==='g'&&S.mutes[cu.id];
-  return`<div class="card">${head}<div id="cl"></div>${muted?'<div class="mu">أنت مكتوم من الشات العام.</div>':'<div class="in"><input id="ci" placeholder="اكتب رسالتك..." onkeydown="if(event.key===\'Enter\')send(\''+k+'\')"><button onclick="send(\''+k+'\')">إرسال</button></div>'}</div>`;
+  const lk=!staff()&&(S.cfg[k]||{}).locked,mt=k==='g'&&S.mutes[cu.id];
+  const inp=lk?'<div class="mu">🔒 الشات مغلق حالياً.</div>':mt?'<div class="mu">أنت مكتوم من الشات العام.</div>':`<div class="in"><select onchange="ins(this)"><option value="">@</option>${S.users.filter(u=>u.id!==cu.id).map(u=>`<option>${esc(u.name)}</option>`).join('')}</select><input id="ci" enterkeyhint="send" autocomplete="off" placeholder="اكتب رسالتك ثم زر الإرسال بالكيبورد" onkeydown="if(event.key==='Enter')send('${k}')"></div>`;
+  return`<div class="card">${head}<div id="pn"></div><div id="cl"></div>${inp}</div>`;
 }
+function ins(s){if(!s.value)return;const i=$('#ci');if(i){i.value+='@'+s.value+' ';i.focus()}s.value=''}
+function msgH(m,k){
+  const u=U(m.u)||{id:m.u,name:m.name,role:m.role};
+  let t=esc(m.text);
+  S.users.slice().sort((a,b)=>b.name.length-a.name.length).forEach(x=>{const w='@'+esc(x.name);if(t.includes(w))t=t.split(w).join(`<span class="mn${x.id===cu.id?' me':''}">${w}</span>`)});
+  const cp=k==='g'?mgr():(cu.role==='owner'||(cu.role==='captain'&&cu.team===m.team));
+  return`<div class="msg ${m.pin?'pin':''}">${avi(u,36)}<div class="mb"><div><b class="rl ${u.role}">${esc(u.name)}</b> <span class="bd ${u.role}">${RN[u.role]}</span> ${cp?`<a onclick="pin('${k}','${m.id}',${!m.pin})">${m.pin?'📍 إلغاء التثبيت':'📌'}</a>`:''} ${staff()&&k==='g'?`<a onclick="del('gmsg','${m.id}')">🗑</a>`:''}</div><div>${t}</div></div></div>`;
+}
+function pin(k,i,on){sw({a:'pin',c:k==='g'?'gmsg':'tmsg',i,on})}
 function chatUpdate(k){
   if(!cu||!['g','t'].includes(tab)||tab!==k)return;
   if(built!==tab+tsel){render();return}
   const el=$('#cl');if(!el)return;
   const l=k==='g'?S.g:S.t.filter(m=>m.team===tsel);
-  el.innerHTML=l.map(m=>`<div class="msg"><span class="rl ${m.role}">${esc(m.name)}</span>${staff()&&k==='g'?` <a href="#" class="mu" onclick="del('gmsg','${m.id}');return false">حذف</a>`:''}<div>${esc(m.text)}</div></div>`).join('')||'<span class="mu">ابدأ السالفة 👋</span>';
+  $('#pn').innerHTML=l.filter(m=>m.pin).map(m=>msgH(m,k)).join('');
+  el.innerHTML=l.map(m=>msgH(m,k)).join('')||'<span class="mu">ابدأ السالفة 👋</span>';
   el.scrollTop=el.scrollHeight;
 }
 function send(k){
   const i=$('#ci'),t=i.value.trim();if(!t)return;
-  if(k==='g'&&S.mutes[cu.id])return;
-  const d={name:cu.name,role:cu.role,u:cu.id,text:t.slice(0,500),ts:Date.now()};
-  if(k==='t')d.team=tsel;
-  db.collection(k==='g'?'gmsg':'tmsg').doc(uid()).set(d);i.value='';
+  const d={text:t.slice(0,500)};if(k==='t')d.team=tsel;
+  set(k==='g'?'gmsg':'tmsg',uid(),d);i.value='';
 }
-function del(c,i){db.collection(c).doc(i).delete()}
 
 function vAdmin(){
   const own=cu.role==='owner',tO=S.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
-  return`<div class="card"><h3 style="margin-top:0">فريق جديد</h3><div class="row"><input id="tnm" placeholder="اسم الفريق"><button onclick="addT()">إضافة</button></div>
-<h3>مباراة جديدة</h3><div class="row"><select id="mh">${tO}</select><span>ضد</span><select id="ma">${tO}</select><select id="mr" onchange="togLeg()"><option value="semi">نصف نهائي</option><option value="final">نهائي</option></select><select id="ml"><option value="1">ذهاب</option><option value="2">إياب</option></select><input id="mt" type="datetime-local"><button onclick="addM()">إضافة</button></div>
-${own?`<h3>إضافة يوزر</h3><div class="row"><input id="un" placeholder="الاسم"><input id="up" placeholder="الرمز السري"><select id="ur"><option value="player">لاعب</option><option value="admin">أدمن</option></select><select id="ut"><option value="">بدون فريق</option>${tO}</select><button onclick="addU()">إضافة</button></div>
-<h3>اليوزرات</h3>${S.users.map(u=>`<div class="row"><b class="${u.role}">${esc(u.name)}</b><span class="mu">${tn(u.team)}</span>${u.role!=='owner'?`<select onchange="db.collection('users').doc('${u.id}').update({role:this.value})"><option value="player" ${u.role==='player'?'selected':''}>لاعب</option><option value="admin" ${u.role==='admin'?'selected':''}>أدمن</option></select><select onchange="db.collection('users').doc('${u.id}').update({team:this.value})"><option value="">بدون فريق</option>${S.teams.map(t=>`<option value="${t.id}" ${u.team===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select><button class="g" onclick="mute('${u.id}')">${S.mutes[u.id]?'فك الميوت':'ميوت'}</button><button class="r" onclick="del('users','${u.id}')">حذف</button>`:''}</div>`).join('')}`:''}</div>`;
+  const ro=(own?['deputy','admin','captain','player']:['admin','captain','player']).map(r=>`<option value="${r}">${RN[r]}</option>`).join('');
+  const sections=SEC.map(s=>{const c=S.cfg[s[0]]||{},ch=['g','t'].includes(s[0]);return`<div class="row"><b style="flex:1">${s[2]} ${s[1]}</b><button class="g" onclick="sw({a:'cfg',k:'${s[0]}',f:'hidden',v:${!c.hidden}})">${c.hidden?'👁 إظهار':'🙈 إخفاء'}</button>${ch?`<button class="g" onclick="sw({a:'cfg',k:'${s[0]}',f:'locked',v:${!c.locked}})">${c.locked?'🔓 فتح':'🔒 إغلاق'}</button>`:''}</div>`}).join('');
+  return`<div class="card"><h3 style="margin-top:0">القوائم (إخفاء / إغلاق)</h3>${sections}</div>
+<div class="card"><h3 style="margin-top:0">الفرق</h3>${S.teams.map(t=>`<div class="row"><b style="flex:1">${esc(t.name)}</b>${mgr()?`<button class="r" onclick="if(confirm('حذف الفريق ${esc(t.name)} مع مبارياته وشات الفريق؟'))del('teams','${t.id}')">حذف</button>`:''}</div>`).join('')||'<span class="mu">لا يوجد</span>'}<div class="row"><input id="tnm" placeholder="اسم الفريق الجديد"><button onclick="addT()">إضافة</button></div></div>
+<div class="card"><h3 style="margin-top:0">مباراة جديدة</h3><div class="fl"><select id="mh">${tO}</select><select id="ma">${tO}</select><select id="mr" onchange="togLeg()"><option value="semi">نصف نهائي</option><option value="final">نهائي</option></select><select id="ml"><option value="1">ذهاب</option><option value="2">إياب</option></select><input id="mt" type="datetime-local"><button onclick="addM()">إضافة المباراة</button></div></div>
+${mgr()?`<div class="card"><h3 style="margin-top:0">إضافة يوزر</h3><div class="fl"><input id="un" placeholder="الاسم"><input id="up" placeholder="الرمز السري"><select id="ur">${ro}</select><select id="ut"><option value="">بدون فريق</option>${tO}</select><button onclick="addU()">إضافة</button></div></div>
+<div class="card"><h3 style="margin-top:0">اليوزرات</h3>${S.users.map(u=>`<div class="m"><b class="rl ${u.role}">${esc(u.name)}</b> <span class="mu">${RN[u.role]} · ${tn(u.team)}</span><div class="row">${own&&u.role!=='owner'?`<select onchange="upd('users','${u.id}',{role:this.value})">${['deputy','admin','captain','player'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${RN[r]}</option>`).join('')}</select><select onchange="upd('users','${u.id}',{team:this.value})"><option value="">بدون فريق</option>${S.teams.map(t=>`<option value="${t.id}" ${u.team===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select>`:''}${u.role!=='owner'?`<button class="g" onclick="mute('${u.id}')">${S.mutes[u.id]?'فك الميوت':'ميوت'}</button>`:''}${own&&u.role!=='owner'?`<button class="r" onclick="if(confirm('حذف اليوزر؟'))del('users','${u.id}')">حذف</button>`:''}</div></div>`).join('')}</div>`:''}`;
 }
 function togLeg(){$('#ml').style.display=$('#mr').value==='semi'?'':'none'}
-function addT(){const n=$('#tnm').value.trim();if(n)db.collection('teams').doc(uid()).set({name:n})}
-function addM(){const h=$('#mh').value,a=$('#ma').value;if(!h||!a||h===a)return;db.collection('matches').doc(uid()).set({home:h,away:a,time:$('#mt').value,round:$('#mr').value,leg:$('#mr').value==='semi'?$('#ml').value:'',hs:null,as:null,scorers:'',assists:''})}
-async function addU(){const n=$('#un').value.trim(),p=$('#up').value;if(!n||!p)return;await db.collection('users').doc(uid()).set({name:n,pin:p,role:$('#ur').value,team:$('#ut').value})}
-function mute(i){S.mutes[i]?db.collection('mutes').doc(i).delete():db.collection('mutes').doc(i).set({on:true})}
+function addT(){const n=$('#tnm').value.trim();if(n)set('teams',uid(),{name:n})}
+function addM(){const h=$('#mh').value,a=$('#ma').value;if(!h||!a||h===a){toast('اختر فريقين مختلفين');return}set('matches',uid(),{home:h,away:a,time:$('#mt').value,round:$('#mr').value,leg:$('#mr').value==='semi'?$('#ml').value:'',hs:null,as:null,scorers:'',assists:''});toast('تمت الإضافة')}
+function addU(){const n=$('#un').value.trim(),p=$('#up').value;if(!n||!p)return;set('users',uid(),{name:n,pin:p,role:$('#ur').value,team:$('#ut').value});$('#un').value='';$('#up').value='';toast('تمت إضافة اليوزر')}
+function mute(i){S.mutes[i]?del('mutes',i):set('mutes',i,{on:true})}
+
+function vAcct(){
+  return`<div class="card"><h3 style="margin-top:0">حسابي</h3><div class="fl"><div style="text-align:center"><div id="avp">${avi(cu,90)}</div><label style="margin-top:8px">الصورة<input type="file" accept="image/*" onchange="pickAv(this.files[0])"></label></div><label>الاسم<input id="an" value="${esc(cu.name)}"></label><button onclick="sw({a:'profile',name:$('#an').value,avatar:av})">حفظ الاسم والصورة</button></div></div>
+<div class="card"><h3 style="margin-top:0">تغيير الرمز السري</h3><div class="fl"><input id="p0" type="password" placeholder="الرمز الحالي"><input id="p1" type="password" placeholder="الرمز الجديد"><input id="p2" type="password" placeholder="أعد كتابة الرمز الجديد"><button onclick="chPass()">تغيير الرمز</button></div></div>`;
+}
+function pickAv(f){
+  if(!f)return;const r=new FileReader();
+  r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=96;const s=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,96,96);av=c.toDataURL('image/jpeg',.7);$('#avp').innerHTML=`<img class="av" style="width:90px;height:90px" src="${av}">`};im.src=r.result};
+  r.readAsDataURL(f);
+}
+function chPass(){
+  const o=$('#p0').value,n=$('#p1').value,c=$('#p2').value;
+  if(n!==c){toast('الرمز الجديد غير متطابق');return}
+  if(n.length<3){toast('الرمز قصير');return}
+  sw({a:'pass',old:o,nw:n});$('#p0').value=$('#p1').value=$('#p2').value='';
+}
 init();
 </script>
 </body>
