@@ -130,7 +130,7 @@ wss.on('connection', ws => {
       if (m.a === 'del') { if (mgr) rm('matches', i); }
       else {
         const n = { ...(M.matches[i] || {}) };
-        ['home', 'away', 'time', 'round', 'leg', 'hs', 'as', 'scorers', 'assists', 'hf', 'af', 'hp', 'ap', 'hsc', 'has', 'asc', 'aas'].forEach(k => {
+        ['home', 'away', 'time', 'round', 'leg', 'hs', 'as', 'scorers', 'assists', 'hf', 'af', 'hp', 'ap', 'hsc', 'has', 'asc', 'aas', 'l1h', 'l1a'].forEach(k => {
           if (k in d) n[k] = typeof d[k] === 'number' ? d[k] : d[k] === null ? null : str(d[k], 200);
         });
         save('matches', i, n);
