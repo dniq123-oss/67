@@ -49,13 +49,26 @@ function view(ws) {
 }
 const broadcast = () => wss.clients.forEach(ws => { if (ws.uid && M.users[ws.uid]) send(ws, view(ws)); });
 
+const caps = new Map();
+function newCap() {
+  const a = 1 + Math.floor(Math.random() * 9), b = 1 + Math.floor(Math.random() * 9), plus = Math.random() < 0.5;
+  const id = crypto.randomBytes(8).toString('hex');
+  caps.set(id, { ans: plus ? a + b : a * b, exp: Date.now() + 300000 });
+  return { a: 'cap', id, q: a + (plus ? ' + ' : ' × ') + b };
+}
+setInterval(() => { const n = Date.now(); caps.forEach((v, k) => { if (v.exp < n) caps.delete(k); }); }, 60000);
+
 wss.on('connection', ws => {
   ws.fails = 0;
   ws.on('message', raw => {
     let m; try { m = JSON.parse(raw); } catch { return; }
+    if (m.a === 'cap') { if (caps.size < 5000) send(ws, newCap()); return; }
     if (m.a === 'login') {
+      const cp = caps.get(m.cid); caps.delete(m.cid);
+      const ans = String(m.cv ?? '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim();
+      if (!cp || cp.exp < Date.now() || String(cp.ans) !== ans) { send(ws, { a: 'err', msg: 'جواب التحقق غلط' }); return send(ws, newCap()); }
       const e = Object.entries(M.users).find(([, u]) => u.name === str(m.name, 30) && check(str(m.pin, 60), u.pin));
-      if (!e) { if (++ws.fails > 8) return ws.close(); return send(ws, { a: 'err', msg: 'الاسم أو الرمز غلط' }); }
+      if (!e) { if (++ws.fails > 8) return ws.close(); send(ws, { a: 'err', msg: 'الاسم أو الرمز غلط' }); return send(ws, newCap()); }
       const tk = crypto.randomBytes(24).toString('hex'); save('sess', tk, { uid: e[0] });
       ws.uid = e[0]; send(ws, { a: 'token', token: tk }); return broadcast();
     }
@@ -117,7 +130,7 @@ wss.on('connection', ws => {
       if (m.a === 'del') { if (mgr) rm('matches', i); }
       else {
         const n = { ...(M.matches[i] || {}) };
-        ['home', 'away', 'time', 'round', 'leg', 'hs', 'as', 'scorers', 'assists'].forEach(k => {
+        ['home', 'away', 'time', 'round', 'leg', 'hs', 'as', 'scorers', 'assists', 'hf', 'af', 'hp', 'ap', 'hsc', 'has', 'asc', 'aas'].forEach(k => {
           if (k in d) n[k] = typeof d[k] === 'number' ? d[k] : d[k] === null ? null : str(d[k], 200);
         });
         save('matches', i, n);
