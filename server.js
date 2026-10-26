@@ -1,9 +1,13 @@
 const express = require('express'), http = require('http'), crypto = require('crypto');
 const { WebSocketServer } = require('ws'), { Pool } = require('pg');
 
-const M = { users: {}, teams: {}, matches: {}, gmsg: {}, tmsg: {}, mutes: {}, sess: {}, cfg: {} };
+process.on('unhandledRejection', e => console.error(e));
+process.on('uncaughtException', e => console.error(e));
+
+const M = { users: {}, teams: {}, matches: {}, gmsg: {}, tmsg: {}, mutes: {}, sess: {}, cfg: {}, ann: {} };
 const app = express();
 app.get('/', (q, r) => r.sendFile(__dirname + '/index.html'));
+app.get('/health', (q, r) => r.send('ok'));
 app.get('/av/:id', (q, r) => {
   const u = M.users[q.params.id], a = u && u.avatar, p = 'data:image/jpeg;base64,';
   if (!a || !a.startsWith(p)) return r.sendStatus(404);
@@ -16,6 +20,7 @@ const pool = new Pool({ connectionString: url, ssl: url && !/localhost|railway\.
 const hash = (p, s = crypto.randomBytes(8).toString('hex')) => s + ':' + crypto.scryptSync(p, s, 32).toString('hex');
 const check = (p, h) => { const a = Buffer.from(hash(p, h.split(':')[0])), b = Buffer.from(h); return a.length === b.length && crypto.timingSafeEqual(a, b); };
 const str = (s, n = 500) => String(s ?? '').slice(0, n);
+const rid = () => crypto.randomBytes(5).toString('hex');
 const save = (c, i, d) => { M[c][i] = d; pool.query('insert into docs(col,id,data) values($1,$2,$3) on conflict(col,id) do update set data=$3', [c, i, d]).catch(console.error); };
 const rm = (c, i) => { delete M[c][i]; pool.query('delete from docs where col=$1 and id=$2', [c, i]).catch(console.error); };
 
@@ -30,13 +35,14 @@ async function boot() {
 }
 
 const STAFF = ['owner', 'deputy', 'admin'];
+const FORMS = ['1-1-1', '2-1', '1-2'];
 const arr = o => Object.entries(o).map(([id, x]) => ({ id, ...x }));
 const send = (ws, o) => ws.readyState === 1 && ws.send(JSON.stringify(o));
-const pub = x => ({ id: x.id, name: x.name, role: x.role, team: x.team, av: x.av || 0 });
+const pub = x => ({ id: x.id, name: x.name, role: x.role, team: x.team, av: x.av || 0, seen: x.seen || 0 });
 const lim = (l, n) => { l.sort((a, b) => a.ts - b.ts); return l.filter((m, i) => i >= l.length - n || m.pin); };
 
 function view(ws) {
-  const u = M.users[ws.uid], staff = STAFF.includes(u.role), cf = M.cfg.sec || {}, seen = new Set(), online = [];
+  const u = M.users[ws.uid], staff = STAFF.includes(u.role), cf = M.cfg.sec || {}, seen = new Set(), online = [], now = Date.now();
   wss.clients.forEach(c => { const x = c.uid && M.users[c.uid]; if (x && !seen.has(c.uid)) { seen.add(c.uid); online.push({ uid: c.uid, name: x.name, role: x.role }); } });
   const hid = k => cf[k] && cf[k].hidden && !staff;
   return {
@@ -44,31 +50,29 @@ function view(ws) {
     teams: arr(M.teams), matches: arr(M.matches),
     g: hid('g') ? [] : lim(arr(M.gmsg), 100),
     t: hid('t') ? [] : lim(arr(M.tmsg).filter(m => u.role === 'owner' || m.team === u.team), 300),
+    ann: arr(M.ann).filter(a => a.exp > now && (staff || a.role === 'all' || a.role === u.role)),
     mutes: Object.keys(M.mutes), cfg: cf, online
   };
 }
 const broadcast = () => wss.clients.forEach(ws => { if (ws.uid && M.users[ws.uid]) send(ws, view(ws)); });
+const seenNow = uid => { if (uid && M.users[uid] && ![...wss.clients].some(c => c.uid === uid && c.readyState === 1)) save('users', uid, { ...M.users[uid], seen: Date.now() }); };
 
-const caps = new Map();
-function newCap() {
-  const a = 1 + Math.floor(Math.random() * 9), b = 1 + Math.floor(Math.random() * 9), plus = Math.random() < 0.5;
-  const id = crypto.randomBytes(8).toString('hex');
-  caps.set(id, { ans: plus ? a + b : a * b, exp: Date.now() + 300000 });
-  return { a: 'cap', id, q: a + (plus ? ' + ' : ' × ') + b };
-}
-setInterval(() => { const n = Date.now(); caps.forEach((v, k) => { if (v.exp < n) caps.delete(k); }); }, 60000);
+const tries = new Map();
+const blocked = ip => { const t = tries.get(ip); return t && t.n >= 10 && Date.now() - t.t < 600000; };
+const failed = ip => { const t = tries.get(ip); if (!t || Date.now() - t.t > 600000) tries.set(ip, { n: 1, t: Date.now() }); else t.n++; };
 
-wss.on('connection', ws => {
-  ws.fails = 0;
+setInterval(() => wss.clients.forEach(ws => { if (ws.isAlive === false) return ws.terminate(); ws.isAlive = false; try { ws.ping(); } catch {} }), 30000);
+setInterval(() => { const n = Date.now(); arr(M.ann).forEach(a => { if (a.exp < n) rm('ann', a.id); }); }, 600000);
+
+wss.on('connection', (ws, req) => {
+  ws.isAlive = true; ws.on('pong', () => { ws.isAlive = true; });
+  const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
   ws.on('message', raw => {
     let m; try { m = JSON.parse(raw); } catch { return; }
-    if (m.a === 'cap') { if (caps.size < 5000) send(ws, newCap()); return; }
     if (m.a === 'login') {
-      const cp = caps.get(m.cid); caps.delete(m.cid);
-      const ans = String(m.cv ?? '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim();
-      if (!cp || cp.exp < Date.now() || String(cp.ans) !== ans) { send(ws, { a: 'err', msg: 'جواب التحقق غلط' }); return send(ws, newCap()); }
+      if (blocked(ip)) return send(ws, { a: 'err', msg: 'محاولات كثيرة، جرب بعد شوي' });
       const e = Object.entries(M.users).find(([, u]) => u.name === str(m.name, 30) && check(str(m.pin, 60), u.pin));
-      if (!e) { if (++ws.fails > 8) return ws.close(); send(ws, { a: 'err', msg: 'الاسم أو الرمز غلط' }); return send(ws, newCap()); }
+      if (!e) { failed(ip); return send(ws, { a: 'err', msg: 'الاسم أو الرمز غلط' }); }
       const tk = crypto.randomBytes(24).toString('hex'); save('sess', tk, { uid: e[0] });
       ws.uid = e[0]; send(ws, { a: 'token', token: tk }); return broadcast();
     }
@@ -78,7 +82,7 @@ wss.on('connection', ws => {
       ws.uid = s.uid; return broadcast();
     }
     const u = ws.uid && M.users[ws.uid]; if (!u) return;
-    if (m.a === 'logout') { if (M.sess[m.token]) rm('sess', m.token); ws.uid = null; return broadcast(); }
+    if (m.a === 'logout') { if (M.sess[m.token]) rm('sess', m.token); const id = ws.uid; ws.uid = null; seenNow(id); return broadcast(); }
     const owner = u.role === 'owner', mgr = owner || u.role === 'deputy', staff = STAFF.includes(u.role);
     const cf = M.cfg.sec || {}, locked = k => !staff && cf[k] && cf[k].locked;
 
@@ -96,8 +100,16 @@ wss.on('connection', ws => {
       if (str(m.nw, 60).length < 3) return send(ws, { a: 'err', msg: 'الرمز قصير' });
       save('users', ws.uid, { ...u, pin: hash(str(m.nw, 60)) }); return send(ws, { a: 'ok', msg: 'تم تغيير الرمز' });
     }
+    if (m.a === 'setpin') {
+      const t = M.users[m.i], pin = str(m.pin, 60);
+      if (!owner || !t) return;
+      if (pin.length < 3) return send(ws, { a: 'err', msg: 'الرمز قصير' });
+      save('users', m.i, { ...t, pin: hash(pin) });
+      if (m.i !== ws.uid) arr(M.sess).forEach(s => { if (s.uid === m.i) rm('sess', s.id); });
+      return send(ws, { a: 'ok', msg: 'تم تغيير رمز ' + t.name });
+    }
     if (m.a === 'cfg') {
-      if (staff && ['m', 's', 'p', 'g', 't'].includes(m.k) && ['hidden', 'locked'].includes(m.f)) {
+      if (staff && ['m', 's', 'p', 'u', 'g', 't'].includes(m.k) && ['hidden', 'locked'].includes(m.f)) {
         const c = { ...(M.cfg.sec || {}) }; c[m.k] = { ...(c[m.k] || {}), [m.f]: !!m.v }; save('cfg', 'sec', c);
       }
       return broadcast();
@@ -106,6 +118,38 @@ wss.on('connection', ws => {
       const col = m.c === 'tmsg' ? 'tmsg' : 'gmsg', doc = M[col][m.i];
       if (doc && (col === 'gmsg' ? mgr : owner || (u.role === 'captain' && doc.team === u.team))) save(col, m.i, { ...doc, pin: !!m.on });
       return broadcast();
+    }
+    if (m.a === 'ann') {
+      const text = str(m.text, 300).trim(), hrs = Math.min(Math.max(+m.hrs || 1, 0.1), 720);
+      const role = ['all', 'player', 'captain', 'admin', 'deputy'].includes(m.role) ? m.role : 'all';
+      if (staff && text) save('ann', rid(), { text, role, exp: Date.now() + hrs * 3600000, ts: Date.now(), by: u.name });
+      return broadcast();
+    }
+    if (m.a === 'annDel') { if (staff && M.ann[m.i]) rm('ann', m.i); return broadcast(); }
+    if (m.a === 'evAdd') {
+      const mt = M.matches[m.i], e = m.e || {};
+      const t = ['g', 'y', 'r', 'i'].includes(e.t) ? e.t : null, side = e.team === 'a' ? 'a' : 'h', p = str(e.p, 30).trim();
+      if (!staff || !mt || !t || !p || (mt.ev || []).length >= 100) return;
+      const o = { id: rid(), t, team: side, p, a: t === 'g' ? str(e.a, 30).trim() : '', m: e.m === '' || e.m == null ? null : Math.max(0, Math.min(150, +e.m || 0)) };
+      const n = { ...mt, ev: [...(mt.ev || []), o] };
+      if (t === 'g') { n.hs = (n.hs ?? 0) + (side === 'h' ? 1 : 0); n.as = (n.as ?? 0) + (side === 'a' ? 1 : 0); }
+      save('matches', m.i, n); return broadcast();
+    }
+    if (m.a === 'evDel') {
+      const mt = M.matches[m.i], e = mt && (mt.ev || []).find(x => x.id === m.eid);
+      if (!staff || !e) return;
+      const n = { ...mt, ev: mt.ev.filter(x => x.id !== m.eid) };
+      if (e.t === 'g') { if (e.team === 'h') n.hs = Math.max(0, (n.hs ?? 0) - 1); else n.as = Math.max(0, (n.as ?? 0) - 1); }
+      save('matches', m.i, n); return broadcast();
+    }
+    if (m.a === 'lineup') {
+      const mt = M.matches[m.i], s = m.side === 'a' ? 'a' : 'h';
+      if (!mt) return;
+      const team = s === 'h' ? mt.home : mt.away;
+      if (!(staff || (u.role === 'captain' && u.team && u.team === team))) return;
+      const f = FORMS.includes(m.f) ? m.f : '1-1-1';
+      const p = (Array.isArray(m.p) ? m.p : []).slice(0, 4).map(x => str(x, 30).trim().replace(/\|/g, ' ')).join('|');
+      save('matches', m.i, { ...mt, [s + 'f']: f, [s + 'p']: p }); return broadcast();
     }
 
     const { c, i } = m, d = m.d || {};
@@ -130,8 +174,8 @@ wss.on('connection', ws => {
       if (m.a === 'del') { if (mgr) rm('matches', i); }
       else {
         const n = { ...(M.matches[i] || {}) };
-        ['home', 'away', 'time', 'round', 'leg', 'hs', 'as', 'scorers', 'assists', 'hf', 'af', 'hp', 'ap', 'hsc', 'has', 'asc', 'aas', 'l1h', 'l1a'].forEach(k => {
-          if (k in d) n[k] = typeof d[k] === 'number' ? d[k] : d[k] === null ? null : str(d[k], 200);
+        ['home', 'away', 'time', 'round', 'leg', 'hs', 'as', 'l1h', 'l1a', 'fin'].forEach(k => {
+          if (k in d) n[k] = typeof d[k] === 'number' || typeof d[k] === 'boolean' ? d[k] : d[k] === null ? null : str(d[k], 100);
         });
         save('matches', i, n);
       }
@@ -146,7 +190,7 @@ wss.on('connection', ws => {
     }
     broadcast();
   });
-  ws.on('close', broadcast);
+  ws.on('close', () => { const id = ws.uid; seenNow(id); broadcast(); });
 });
 
 boot();
