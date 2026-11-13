@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard</title>
+<style>
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f3f4f6; color: #333; }
+  
+  /* Google / Gmail Style */
+  .gmail { background: #fff; height: 100vh; display: flex; flex-direction: column; }
+  .gmail-header { padding: 10px 20px; display: flex; align-items: center; border-bottom: 1px solid #e0e0e0; gap: 20px; }
+  .gmail-logo { height: 30px; }
+  .gmail-search { background: #eaf1fb; border-radius: 8px; padding: 8px 16px; flex: 1; max-width: 600px; color: #555; font-size: 14px; border: none; outline: none; }
+  .gmail-body { display: flex; flex: 1; }
+  .gmail-sidebar { width: 200px; padding: 16px 8px; background: #f3f6fc; }
+  .gmail-compose { background: #c2e7ff; color: #001d35; padding: 12px 20px; border-radius: 16px; font-weight: 500; display: inline-block; margin-bottom: 16px; cursor: pointer; }
+  .gmail-item { padding: 8px 16px; border-radius: 0 16px 16px 0; color: #333; font-size: 14px; display: flex; gap: 10px; align-items: center; }
+  .gmail-item.active { background: #d3e3fd; font-weight: bold; }
+  .gmail-list { flex: 1; padding: 16px; }
+  .email-row { display: flex; padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+  .email-sender { width: 150px; font-weight: 500; }
+  
+  /* Instagram Style */
+  .insta { background: #fafafa; min-height: 100vh; }
+  .insta-header { background: #fff; border-bottom: 1px solid #dbdbdb; padding: 12px; text-align: center; font-family: Georgia, serif; font-style: italic; font-size: 24px; }
+  .insta-feed { max-width: 470px; margin: 20px auto; }
+  .insta-post { background: #fff; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 20px; }
+  .insta-post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; }
+  .insta-avatar { width: 32px; height: 32px; background: #ccc; border-radius: 50%; }
+  .insta-img { width: 100%; height: 400px; background: #e1e1e1; display: flex; align-items: center; justify-content: center; color: #888; }
+  .insta-actions { padding: 12px; font-size: 20px; letter-spacing: 5px; }
+
+  /* Discord Style */
+  .discord { display: flex; height: 100vh; background: #313338; color: #dbdee1; font-family: gg sans, sans-serif; }
+  .d-side { width: 72px; background: #1e1f22; padding: 12px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .d-icon { width: 48px; height: 48px; background: #5865f2; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
+  .d-channels { width: 240px; background: #2b2d31; display: flex; flex-direction: column; }
+  .d-ch-head { height: 48px; display: flex; align-items: center; padding: 0 16px; font-weight: bold; color: #f2f3f5; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .d-ch-list { padding: 16px 8px; flex: 1; }
+  .d-ch { padding: 8px; border-radius: 4px; color: #949ba4; font-size: 15px; margin-bottom: 4px; }
+  .d-ch.active { background: #404249; color: #f2f3f5; }
+  .d-chat { flex: 1; display: flex; flex-direction: column; }
+  .d-chat-head { height: 48px; display: flex; align-items: center; padding: 0 16px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .d-chat-body { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .d-welcome { width: 68px; height: 68px; background: #41434a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 16px; }
+  .d-input { margin: 0 16px 24px; background: #383a40; padding: 12px 16px; border-radius: 8px; color: #6d6f78; }
+
+  /* Microsoft / Outlook Style */
+  .microsoft { display: flex; height: 100vh; font-family: "Segoe UI", sans-serif; background: #f3f2f1; }
+  .ms-side { width: 68px; background: #f3f2f1; display: flex; flex-direction: column; align-items: center; padding-top: 16px; border-right: 1px solid #e1dfdd; gap: 20px; }
+  .ms-icon { width: 32px; height: 32px; background: #0078d4; border-radius: 4px; }
+  .ms-main { flex: 1; display: flex; flex-direction: column; }
+  .ms-header { height: 48px; background: #fff; border-bottom: 1px solid #e1dfdd; display: flex; align-items: center; padding: 0 16px; font-weight: 600; color: #323130; }
+  .ms-body { padding: 24px; flex: 1; }
+  .ms-card { background: #fff; border: 1px solid #e1dfdd; border-radius: 4px; padding: 20px; box-shadow: 0 1.6px 3.6px 0 rgba(0,0,0,.13); }
+
+  /* Steam Style */
+  .steam { background: #1b2838; min-height: 100vh; color: #c6d4df; font-family: Arial, sans-serif; }
+  .steam-header { background: #171a21; padding: 16px 10%; display: flex; gap: 20px; align-items: center; font-size: 14px; font-weight: bold; color: #b8b6b4; }
+  .steam-content { padding: 40px 10%; }
+  .steam-title { color: #fff; font-size: 24px; font-weight: normal; margin-bottom: 20px; }
+  .steam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+  .steam-game { background: #2a475e; height: 250px; border-radius: 4px; display: flex; align-items: flex-end; padding: 10px; font-weight: bold; color: #fff; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Google / Gmail View -->
+<div id="view-google" class="gmail hidden">
+  <div class="gmail-header">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" class="gmail-logo">
+    <input class="gmail-search" type="text" placeholder="Search mail" disabled>
+  </div>
+  <div class="gmail-body">
+    <div class="gmail-sidebar">
+      <div class="gmail-compose">✏️ Compose</div>
+      <div class="gmail-item active">📥 Inbox (1)</div>
+      <div class="gmail-item">⭐ Starred</div>
+      <div class="gmail-item">🕒 Snoozed</div>
+      <div class="gmail-item">📤 Sent</div>
+      <div class="gmail-item">📝 Drafts</div>
+    </div>
+    <div class="gmail-list">
+      <div class="email-row" style="background: #fff; font-weight: bold;">
+        <div class="email-sender">Google</div>
+        <div style="flex:1; color:#555;">Security alert for your linked account</div>
+        <div style="color:#888;">10:42 AM</div>
+      </div>
+      <div class="email-row">
+        <div class="email-sender">GitHub</div>
+        <div style="flex:1; color:#555;">[GitHub] Please verify your device</div>
+        <div style="color:#888;">9:15 AM</div>
+      </div>
+      <div class="email-row">
+        <div class="email-sender">Steam Support</div>
+        <div style="flex:1; color:#555;">Recent login from new device</div>
+        <div style="color:#888;">Yesterday</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Instagram View -->
+<div id="view-instagram" class="insta hidden">
+  <div class="insta-header">Instagram</div>
+  <div class="insta-feed">
+    <div class="insta-post">
+      <div class="insta-post-header"><div class="insta-avatar"></div> cristiano</div>
+      <div class="insta-img">[ Image ]</div>
+      <div class="insta-actions">❤️ 💬 📤</div>
+      <div style="padding: 0 12px 12px; font-size: 14px;"><b>1,234,567 likes</b><br>Training day 💪</div>
+    </div>
+    <div class="insta-post">
+      <div class="insta-post-header"><div class="insta-avatar"></div> natgeo</div>
+      <div class="insta-img" style="background:#ddd;">[ Image ]</div>
+      <div class="insta-actions">❤️ 💬 📤</div>
+      <div style="padding: 0 12px 12px; font-size: 14px;"><b>89,123 likes</b><br>Nature is beautiful.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Discord View -->
+<div id="view-discord" class="discord hidden">
+  <div class="d-side">
+    <div class="d-icon" style="border-radius: 50%;">D</div>
+    <div style="width: 32px; height: 2px; background: #35373c;"></div>
+    <div class="d-icon">N</div>
+  </div>
+  <div class="d-channels">
+    <div class="d-ch-head">Null's Server</div>
+    <div class="d-ch-list">
+      <div class="d-ch"># general</div>
+      <div class="d-ch active"># welcome</div>
+      <div class="d-ch"># rules</div>
+    </div>
+  </div>
+  <div class="d-chat">
+    <div class="d-chat-head"># welcome</div>
+    <div class="d-chat-body">
+      <div class="d-welcome">👋</div>
+      <h1 style="margin:0 0 8px; color:#f2f3f5; font-size:32px; font-weight:800;">Welcome to Null's Server!</h1>
+      <p style="margin:0; color:#b5bac1; font-size:16px;">This is the start of the #welcome channel.</p>
+    </div>
+    <div class="d-input">Message #welcome</div>
+  </div>
+</div>
+
+<!-- Microsoft / Outlook View -->
+<div id="view-microsoft" class="microsoft hidden">
+  <div class="ms-side">
+    <div class="ms-icon"></div>
+    <div style="width: 24px; height: 24px; background: #ccc; border-radius: 50%;"></div>
+    <div style="width: 24px; height: 24px; background: #ccc; border-radius: 50%;"></div>
+  </div>
+  <div class="ms-main">
+    <div class="ms-header">Outlook</div>
+    <div class="ms-body">
+      <div class="ms-card">
+        <h2 style="margin-top:0; color:#0078d4;">Inbox</h2>
+        <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+          <b>Microsoft Account Team</b> - Security info added to your account
+        </div>
+        <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+          <b>LinkedIn</b> - You appeared in 9 searches this week
+        </div>
+        <div style="padding: 10px 0;">
+          <b>PayPal</b> - Receipt for your payment
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Steam View -->
+<div id="view-steam" class="steam hidden">
+  <div class="steam-header">
+    <div style="color:#fff; font-size:20px;">STEAM</div>
+    <div>STORE</div>
+    <div>LIBRARY</div>
+    <div>COMMUNITY</div>
+  </div>
+  <div class="steam-content">
+    <div class="steam-title">Your Store</div>
+    <div class="steam-grid">
+      <div class="steam-game">Counter-Strike 2</div>
+      <div class="steam-game">Dota 2</div>
+      <div class="steam-game">PUBG: BATTLEGROUNDS</div>
+      <div class="steam-game">Apex Legends™</div>
+      <div class="steam-game">Destiny 2</div>
+      <div class="steam-game">Rust</div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Fallback -->
+<div id="view-generic" class="hidden" style="display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; background:#0f1115; color:#fff;">
+  <h1>Successfully Logged In</h1>
+  <p style="color:#888;">Your session has been verified.</p>
+</div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  let brand = urlParams.get('b') || 'generic';
+  
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+
+  const targetView = document.getElementById('view-' + brand);
+  if (targetView) {
+    targetView.classList.remove('hidden');
+  } else {
+    document.getElementById('view-generic').classList.remove('hidden');
+  }
+</script>
+</body>
+</html>
