@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discord</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: gg sans, "Noto Sans", Helvetica, Arial, sans-serif; background: #313338; color: #dbdee1; height: 100vh; display: flex; overflow: hidden; }
+  .sidebar { width: 72px; background: #1e1f22; display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 8px; flex-shrink: 0; }
+  .server-icon { width: 48px; height: 48px; background: #5865f2; border-radius: 16px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; cursor: pointer; transition: .2s; }
+  .server-icon:hover { border-radius: 12px; background: #4752c4; }
+  .channels { width: 240px; background: #2b2d31; display: flex; flex-direction: column; flex-shrink: 0; }
+  .server-header { height: 48px; padding: 0 16px; display: flex; align-items: center; font-weight: 600; color: #f2f3f5; border-bottom: 1px solid #1e1f22; box-shadow: 0 1px 2px rgba(0,0,0,.2); cursor: pointer; }
+  .channel-list { padding: 16px 8px; overflow-y: auto; flex: 1; }
+  .channel-category { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #949ba4; padding: 8px; margin-top: 16px; display: flex; justify-content: space-between; }
+  .channel { padding: 6px 8px; border-radius: 4px; color: #949ba4; margin: 2px 0; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+  .channel:hover { background: #35373c; color: #dbdee1; }
+  .channel.active { background: #404249; color: #f2f3f5; }
+  .channel::before { content: '#'; font-size: 18px; color: #80848e; font-weight: 400; }
+  .user-panel { height: 52px; background: #232428; display: flex; align-items: center; padding: 0 8px; gap: 8px; }
+  .avatar { width: 32px; height: 32px; background: #5865f2; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; color: white; font-weight: bold; }
+  .user-info { display: flex; flex-direction: column; }
+  .username { font-size: 14px; font-weight: 600; color: #f2f3f5; }
+  .tag { font-size: 12px; color: #b5bac1; }
+  .chat { flex: 1; display: flex; flex-direction: column; background: #313338; }
+  .chat-header { height: 48px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid #1e1f22; font-weight: 600; color: #f2f3f5; box-shadow: 0 1px 2px rgba(0,0,0,.2); z-index: 10; }
+  .chat-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-end; }
+  .welcome { text-align: center; margin-bottom: 40px; }
+  .welcome-icon { width: 68px; height: 68px; background: #41434a; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 16px; font-size: 40px; }
+  .welcome h1 { margin: 0 0 8px; color: #f2f3f5; font-size: 32px; font-weight: 800; }
+  .welcome p { margin: 0; color: #b5bac1; font-size: 16px; }
+  .chat-input { padding: 0 16px 24px; }
+  .chat-input-box { background: #383a40; border-radius: 8px; padding: 11px 16px; color: #dbdee1; cursor: text; }
+  .chat-input-box span { color: #6d6f78; }
+</style>
+</head>
+<body>
+
+  <!-- السيرفرات -->
+  <div class="sidebar">
+    <div class="server-icon" style="background: #313338; border-radius: 50%;">
+      <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6ca814282eca7172c6_icon_clyde_white_RGB.svg" width="24" alt="D">
+    </div>
+    <div style="width: 32px; height: 2px; background: #35373c; border-radius: 1px; margin: 4px 0;"></div>
+    <div class="server-icon">N</div>
+    <div class="server-icon" style="background: #23a55a;">+</div>
+  </div>
+
+  <!-- القنوات -->
+  <div class="channels">
+    <div class="server-header">Null's Server</div>
+    <div class="channel-list">
+      <div class="channel-category">Text Channels</div>
+      <div class="channel">general</div>
+      <div class="channel active">welcome</div>
+      <div class="channel">rules</div>
+      <div class="channel-category">Voice Channels</div>
+      <div class="channel" style="content: '';">General</div>
+    </div>
+    <div class="user-panel">
+      <div class="avatar" id="u-avatar">U</div>
+      <div class="user-info">
+        <div class="username" id="u-name">User</div>
+        <div class="tag">#0000</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الشات -->
+  <div class="chat">
+    <div class="chat-header"># welcome</div>
+    <div class="chat-messages">
+      <div class="welcome">
+        <div class="welcome-icon">👋</div>
+        <h1>Welcome to Null's Server!</h1>
+        <p>This is the start of the #welcome channel.</p>
+      </div>
+    </div>
+    <div class="chat-input">
+      <div class="chat-input-box"><span>Message #welcome</span></div>
+    </div>
+  </div>
+
+<script>
+// كود بسيط عشان يبين اسم اليوزر اللي سجل دخول (شكلياً)
+document.addEventListener("DOMContentLoaded", () => {
+  // ناخد أول حرف من الإيميل أو الاسم لو كان محفوظ باللوكال ستوريج
+  // بس هون بنخليه ثابت "User" عشان ما نعقد الأمور
+});
+</script>
+</body>
+</html>
