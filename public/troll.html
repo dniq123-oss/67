@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>⚠️ SYSTEM ALERT ⚠️</title>
+<style>
+  body {
+    margin: 0; background: #000; color: #ff0000; font-family: monospace;
+    height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; overflow: hidden; user-select: none;
+    animation: flash 1s infinite alternate;
+  }
+  @keyframes flash { from { background: #000; } to { background: #1a0000; } }
+  h1 { font-size: 40px; margin: 0 0 20px; text-transform: uppercase; text-shadow: 0 0 10px red; }
+  p { font-size: 20px; margin: 10px 0; max-width: 600px; line-height: 1.5; }
+  .skull { font-size: 100px; margin-bottom: 20px; animation: pulse 0.5s infinite alternate; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+  .countdown { font-size: 30px; font-weight: bold; color: #fff; margin-top: 30px; }
+</style>
+</head>
+<body>
+  <div class="skull">💀</div>
+  <h1>CRITICAL WARNING</h1>
+  <p>Your device has been infected with a dangerous trojan.</p>
+  <p>All your personal files, photos, and passwords are being uploaded to our servers.</p>
+  <p>Do not close this window. Contact support immediately.</p>
+  <div class="countdown" id="timer">Data exfiltration in: 10</div>
+
+<script>
+  // 1. قفل زر الرجوع
+  history.pushState(null, null, location.href);
+  window.onpopstate = function () {
+      history.go(1);
+  };
+
+  // 2. تشغيل الصوت المزعج (يشتغل أول ما يلمس الشاشة)
+  let audioCtx;
+  function startSiren() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 800;
+    gain.gain.value = 0.1;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    
+    // تغيير التردد عشان يطلع صوت إنذار حقيقي
+    setInterval(() => {
+      osc.frequency.value = osc.frequency.value === 800 ? 400 : 800;
+    }, 400);
+  }
+
+  document.body.addEventListener('click', startSiren, { once: true });
+  document.body.addEventListener('touchstart', startSiren, { once: true });
+
+  // 3. بوب أب لا نهائي (كل 3 ثواني)
+  setInterval(() => {
+    alert("⚠️ WARNING: YOUR SYSTEM IS COMPROMISED ⚠️\n\nYour IP has been logged.\nClose this tab if you dare...");
+  }, 3000);
+
+  // 4. عداد تنازلي وهمي
+  let timeLeft = 10;
+  const timerEl = document.getElementById('timer');
+  setInterval(() => {
+    if (timeLeft > 0) {
+      timeLeft--;
+      timerEl.textContent = `Data exfiltration in: ${timeLeft}`;
+    }
+  }, 1000);
+
+  // منع النقر بالزر الأيمن
+  document.addEventListener('contextmenu', event => event.preventDefault());
+</script>
+</body>
+</html>
