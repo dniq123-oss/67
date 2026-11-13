@@ -1,0 +1,23 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; display: grid; place-items: center;
+  font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0f1115; color: #e6e6e6;
+}
+.card {
+  width: 360px; padding: 32px; background: #171a21; border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.4);
+}
+h1 { margin: 0 0 4px; font-size: 22px; }
+.sub { margin: 0 0 24px; color: #8a8f99; font-size: 14px; }
+input {
+  width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px;
+  border: 1px solid #2a2f3a; background: #0f1115; color: #e6e6e6; font-size: 14px;
+}
+input:focus { outline: none; border-color: #4a90e2; }
+button {
+  width: 100%; padding: 12px; border: 0; border-radius: 8px;
+  background: #4a90e2; color: white; font-weight: 600; cursor: pointer; font-size: 14px;
+}
+button:hover { background: #3a7bc8; }
+#msg { color: #e26a6a; font-size: 13px; margin-top: 12px; min-height: 16px; }
